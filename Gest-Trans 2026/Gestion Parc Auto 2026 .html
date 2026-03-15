@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Parc Auto - Cyber Edition</title>
+    
+    <style>
+        /* --- RESET & GLOBAL --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html { 
+            height:100%; 
+            overflow: hidden;
+        }
+        
+        :root {
+            /* --- LIGHT THEME PALETTE --- */
+            --bg-dark: #f3f4f6; /* Gris clair global (Background) */
+            --bg-sidebar: #ffffff; /* Blanc pur pour le menu */
+            --bg-panel: #ffffff; /* Blanc pour les cartes/panneaux */
+            --bg-input: #f9fafb; /* Gris très clair pour les champs */
+            
+            --bg-blue-med: #2563eb;  /* Bleu plus foncé pour contraste */
+            --bg-blue-light: #3b82f6; 
+            
+            --text-main: #111827; /* Noir/Gris très foncé pour le texte */
+            --text-muted: #6b7280; /* Gris moyen */
+            
+            --border-color: #d1d5db; /* Bordures grises claires */
+            --border-accent: #2563eb; /* Bordure bleue */
+            
+            /* Police : Algérienne ou Comic Sans avec Gras */
+            --font-comic: 'Algerian', 'Comic Sans MS', 'Comic Sans', cursive;
+            
+            --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hard: 4px 4px 0px rgba(0,0,0,0.1); /* Ombre nette subtile */
+            
+            /* Noir Clair pour le 3D */
+            --bg-3d-dark: #1f2937; 
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 16px;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        .force-comic {
+            font-family: var(--font-comic) !important;
+            font-style: italic !important;
+            font-weight: 900 !important; /* Extra Gras */
+        }
+
+        /* --- STYLE MODIFIÉ : Titres des Stats du Dashboard --- */
+        .stat-label-custom {
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive !important;
+            font-style: italic !important;
+            color: #000080 !important; /* Bleu Marine */
+            font-weight: 900 !important;
+            font-size:1.5rem !important; /* AGRAVEMENT DE LA TAILLE (Agrandi) */
+            
+            /* SOULIGNEMENT */
+            text-decoration: underline; 
+            text-decoration-thickness: 3px; /* Trait épais */
+            text-decoration-color: #000080; /* Couleur du soulignement */
+            text-underline-offset: 5px; /* Espacement sous le texte */
+            
+            border-bottom: none; /* Suppression de l'ancienne bordure grise fine */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem; /* Plus d'espace car le texte est plus grand */
+            text-transform: none !important; 
+            letter-spacing: normal !important;
+            text-align: center; /* Centrage optionnel pour un meilleur équilibre avec le chiffre en dessous */
+        }
+
+        /* --- STYLE SPECIFIQUE : TOTAL GLOBAL SITUATION DES CHARGES (Vert, Gras, Incliné) --- */
+        .sit-total-result {
+            font-style: italic !important; /* Incliné */
+            font-weight: 900 !important;    /* Gras */
+            color: #16a34a !important;     /* Vert (Succès/Finance) */
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Légère profondeur */
+            /* RÉDUCTION DE 30% LA TAILLE PAR RAPPORT À 1.944REM -> 1.361REM */
+            font-size: 1.361rem !important; 
+            line-height: 1.1; /* Ajustement ligne */
+        }
+
+        /* NOUVEAU : Style Arial Blank Incliné Souligné pour les chiffres */
+        .stat-text-arial {
+            font-family: "Arial Black", "Arial", sans-serif;
+            font-style: italic;
+            color: transparent; /* Fond transparent pour ne voir que le contour */
+            /* Astuce text-shadow pour créer un contour net */
+            text-shadow: -1px -1px 0 #111827, 1px -1px 0 #111827, -1px 1px 0 #111827, 1px 1px 0 #111827;
+            font-weight: 900; /* Gras pour épaissir le contour */
+            line-height: 1.2; /* Ajustement pour éviter la coupe du haut/bas */
+        }
+        
+        /* --- TITRE MARRON BRILLANT --- */
+        .app-title-shiny {
+            font-family: var(--font-comic) !important;
+            font-size: 2.5rem; /* Titre agrandi */
+            font-weight: 900 !important;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.1;
+            /* Effet Marron Brillant (Dégradé Bronze -> Or) */
+            background: linear-gradient(to bottom, #8B4513, #CD7F32, #FFD700);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.2));
+        }
+        
+        h1, h2, h3, h4 { color: var(--text-main); text-shadow: none; }
+
+        /* --- LAYOUT --- */
+        .app-sidebar {
+            width: 20rem; 
+            background-color: var(--bg-sidebar);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            border-right:1px solid #e5e7eb;
+            flex-shrink: 0;
+            z-index: 20;
+            box-shadow:4px 0 24px rgba(0,0,0,0.02);
+            height: 100%;
+        }
+
+        .app-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            background-color: var(--bg-dark); /* Gris clair demandé */
+            height: 100%;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 3rem;
+        }
+
+        /* --- COMPONENTS --- */
+        /* Glass Panel (Now White) */
+        .glass-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-soft);
+            border-radius: 0.75rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            gap: 0.75rem;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary { 
+            background-color: var(--bg-blue-med); 
+            color: white; 
+            box-shadow: var(--shadow-hard); 
+        }
+        .btn-primary:hover { 
+            transform: translate(1px, 1px); 
+            background-color: #1d4ed8; 
+        }
+        
+        .btn-success { 
+            background-color: #16a34a; 
+            color: white; 
+            box-shadow: var(--shadow-hard); 
+        }
+        .btn-success:hover { 
+            transform: translate(1px, 1px); 
+            background-color: #15803d; 
+        }
+
+        .btn-neutral { 
+            background-color: #e5e7eb; 
+            color: var(--text-main); 
+            border-color: #d1d5db; 
+        }
+        .btn-neutral:hover { background-color: #d1d5db; }
+
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-icon { padding: 0.75rem; }
+
+        /* Forms */
+        .form-group { margin-bottom: 2rem; }
+        .form-label { 
+            display: block; 
+            font-size: 1rem; 
+            text-transform: uppercase; 
+            margin-bottom: 1rem; 
+            font-weight: bold; 
+            color: #374151; /* Gris foncé pour les labels */
+            letter-spacing: 1px; 
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 2px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            outline: none;
+            color: var(--text-main); /* Texte sombre */
+            font-size: 1.15rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus { 
+            border-color: var(--border-accent); 
+            background: #ffffff; 
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+        }
+        
+        option { background-color: white; color: black; }
+
+        /* Tables */
+        .table-container { 
+            width: 100%; 
+            overflow-x: auto; 
+            border: 1px solid var(--border-color); 
+            box-shadow: var(--shadow-soft); 
+            border-radius: 0.75rem;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { 
+            background-color: #f9fafb; /* Gris très pâle pour entêtes */
+            color: #374151; 
+            padding: 1.25rem 1.5rem; 
+            font-size: 0.9rem; 
+            text-transform: uppercase; 
+            border-bottom: 2px solid #e5e7eb; 
+        }
+        td { 
+            padding: 1.25rem 1.5rem; 
+            border-bottom: 1px solid #f3f4f6; 
+            vertical-align: middle; 
+            background: white; 
+            color: #374151;
+        }
+        tr:hover td { background-color: #f9fafb; }
+
+        /* Badges (Light Mode) */
+        .badge { padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: bold; text-transform: uppercase; border: 1px solid #e5e7eb; }
+        
+        /* Default active badge style for light mode */
+        .badge-active { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; } 
+        .badge-inactive { background: #f3f4f6; color: #6b7280; border-color: #e5e7eb; }
+        
+        /* Grids */
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.5rem; }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-6 { padding: 1.5rem; }
+        .p-8 { padding: 2rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-mono { font-family: monospace; }
+        .text-gray-400 { color: #9ca3af; }
+        .text-gray-500 { color: #6b7280; }
+        .text-gray-900 { color: #111827; }
+        .bg-gray-800 { background-color: #1f2937; }
+        .bg-gray-900 { background-color: #111827; }
+        .bg-white { background-color: #ffffff; }
+        .text-blue-700 { color: #2563eb !important; } /* FORCE BLUE */
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        
+        /* Fond Gris Clair pour les stats */
+        .bg-stat-card {
+            background-color: #e5e7eb !important; /* Gris clair (Gray-200) */
+        }
+
+        /* Separator for forms */
+        .form-separator {
+            border-top: 1px solid var(--border-color);
+            margin: 2rem 0;
+            padding-top: 2rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); /* Overlay plus sombre pour faire ressortir le blanc */
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #ffffff; /* Fond Blanc */
+            border: 1px solid var(--border-color);
+            width: 100%; max-width: 65rem;
+            border-radius:1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-height: 95vh; overflow-y: auto;
+            transform: scale(0.95); transition: transform 0.3s;
+            color: var(--text-main);
+            padding: 3rem;
+        }
+        .modal-content.open { transform: scale(1); }
+
+        /* 3D Canvas Container */
+        #canvas-container {
+            width: 100%; height: 10rem;
+            background: var(--bg-3d-dark); /* Noir Clair (Anthracite) demandé */
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0.5rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            cursor: move;
+        }
+
+        /* Sidebar Specifics */
+        .nav-item {
+            width: 100%; text-align: left; padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: #f9fafb; /* Gris très clair */
+            color: #374151; border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            display: flex; align-items: center; gap: 1rem;
+            cursor: pointer; box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background: #eff6ff; border-color: var(--border-accent); color: var(--border-accent); }
+        .nav-item.active { 
+            background: #eff6ff; 
+            border-color: var(--border-accent); 
+            color: var(--border-accent);
+            box-shadow: 2px 2px 0px rgba(37, 99, 235, 0.2); 
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: #f3f4f6; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 6px; border: 3px solid #f3f4f6; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        /* Stats Numbers */
+        .stat-number {
+            color: #111827;
+            text-shadow: none;
+        }
+
+        /* --- IMAGE UPLOAD PREVIEW --- */
+        .image-upload-container {
+            display: flex;
+            flex-direction: column,
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        .image-preview {
+            width: 220px; /* Augmenté de 150px à 220px */
+            height: 220px; /* Augmenté de 150px à 220px */
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 2px dashed var(--border-color);
+            background-color: #f9fafb;
+            display: none; /* Caché par défaut */
+        }
+        .vehicle-thumb-table {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #e5e7eb;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            /* Masquer l'interface inutile (Sidebar, Header, Boutons, Overlay autres modals) */
+            .app-sidebar, .app-main, .modal-content button { display: none !important; }
+            
+            /* Forcer l'affichage du modal Situation */
+            .modal-overlay {
+                position: static !important;
+                background: white !important;
+                display: block !important;
+                height: auto !important;
+                width: 100% !important;
+                opacity:1 !important;
+                backdrop-filter: none;
+            }
+            
+            #modal-situation {
+                max-width: 100% !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                transform: none !important;
+                display: block !important; /* Force affichage même si 'hidden' */
+            }
+    
+            /* Masquer le titre du modal, le formulaire de filtre */
+            #modal-situation .flex.justify-between.items-center.py-4,
+            #situation-form {
+                display: none !important;
+            }
+
+            /* Afficher le titre d'impression */
+            #print-title {
+                display: block !important;
+                text-align: center;
+                font-size: 24px;
+                font-family: 'Cooper Black', 'Cooper Std Black', fantasy, sans-serif;
+                margin-bottom: 2rem;
+            }
+
+            /* Forcer le tableau à être noir et blanc pour l'impression */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid #000 !important;
+                background: white !important; /* Enlever les couleurs de fond cyber */
+                color: #000 !important;      /* Forcer le texte en noir */
+                box-shadow: none !important;
+                padding: 8px 12px !important;
+            }
+            
+            /* Aligner les montants à droite pour la lisibilité */
+            th:not(:first-child), td:not(:first-child) {
+                text-align: right !important;
+            }
+            th:first-child, td:first-child {
+                text-align: left !important;
+            }
+            
+            /* Afficher correctement le total final */
+            #sit-grand-total {
+                color: #000 !important;
+            }
+            
+            body {
+                background: white;
+                height: auto;
+                overflow: visible;
+                display: block;
+            }
+
+            /* --- IMPRESSION SPÉCIFIQUE LISTE VÉHICULES --- */
+            body.printing-vehicles .app-sidebar,
+            body.printing-vehicles header,
+            body.printing-vehicles .modal-overlay,
+            body.printing-vehicles .modal-content,
+            body.printing-vehicles .btn,
+            body.printing-vehicles input,
+            body.printing-vehicles #view-vehicles .glass-panel:not(.table-container) {
+                display: none !important;
+            }
+
+            body.printing-vehicles .app-main {
+                display: block !important;
+                position: static;
+                background: white;
+                height: auto;
+                overflow: visible;
+            }
+
+            body.printing-vehicles #view-vehicles {
+                display: block !important;
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                padding: 20px;
+                background: white;
+            }
+
+            body.printing-vehicles #print-vehicle-title {
+                display: block !important;
+                text-align: center;
+                font-size: 24px;
+                font-family: 'Cooper Black', 'Cooper Std Black', fantasy, sans-serif;
+                margin-bottom: 20px;
+                text-transform: uppercase;
+            }
+
+            body.printing-vehicles .table-container {
+                box-shadow: none;
+                border: 2px solid #000;
+                border-radius: 0;
+            }
+
+            body.printing-vehicles th, body.printing-vehicles td {
+                border: 1px solid #000;
+                padding: 6px 8px;
+                font-size: 12px;
+                color: #000 !important;
+                background: #fff !important;
+                page-break-inside: avoid;
+            }
+
+            /* Masquer la colonne Action (boutons) à l'impression */
+            body.printing-vehicles th:last-child, 
+            body.printing-vehicles td:last-child {
+                display: none;
+            }
+
+            /* --- IMPRESSION SPÉCIFIQUE LISTE UTILISATEURS (NOUVEAU) --- */
+            body.printing-users .app-sidebar,
+            body.printing-users header,
+            body.printing-users .modal-overlay,
+            body.printing-users .modal-content,
+            body.printing-users .btn,
+            body.printing-users input,
+            /* On cible spécifiquement le panneau de recherche/contrôle pour ne pas cacher la table */
+            body.printing-users #view-users > .ui-controls,
+            /* On cache aussi le titre visible à l'écran (BASE DE DONNEES...) */
+            body.printing-users #view-users > .glass-panel > .px-8 { 
+                display: none !important; 
+            }
+
+            body.printing-users .app-main {
+                display: block !important;
+                position: static;
+                background: white;
+                height: auto;
+                overflow: visible;
+            }
+
+            body.printing-users #view-users {
+                display: block !important;
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                padding: 20px;
+                background: white;
+            }
+
+            body.printing-users #print-user-title {
+                display: block !important;
+                text-align: center;
+                font-size: 24px;
+                font-family: 'Cooper Black', 'Cooper Std Black', fantasy, sans-serif;
+                margin-bottom: 20px;
+                text-transform: uppercase;
+            }
+
+            body.printing-users .table-container {
+                box-shadow: none;
+                border: 2px solid #000;
+                border-radius: 0;
+            }
+
+            body.printing-users th, body.printing-users td {
+                border: 1px solid #000;
+                padding: 6px 8px;
+                font-size: 12px;
+                color: #000 !important;
+                background: #fff !important;
+                page-break-inside: avoid;
+            }
+
+            /* Masquer la colonne Action à l'impression pour les utilisateurs aussi */
+            body.printing-users th:last-child, 
+            body.printing-users td:last-child {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="app-sidebar">
+        <!-- Header with Title &3D -->
+        <div class="p-6 border-b border-gray-200 flex flex flex-col items-center bg-white relative overflow-hidden">
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, #2563eb, #93c5fd);"></div>
+            
+            <!-- Titre agrandi et marron brillant -->
+            <h1 class="mb-4 app-title-shiny z-10 relative">
+                GESTION<br>PARC AUTO
+            </h1>
+            
+            <!-- 3D Canvas -->
+            <div id="canvas-container">
+                <canvas id="carCanvas"></canvas>
+            </div>
+            <p class="text-xs text-gray-500 mt-3 text-center italic font-bold font-mono z-10">Système de Gestion 2026. Verssion V01.</p>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto p-4 bg-white space-y-2">
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-item active">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="force-comic">Tableau de bord</span>
+            </button>
+            <button onclick="switchView('vehicles')" id="nav-vehicles" class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                <span class="force-comic">Parc Véhicules</span>
+            </button>
+            <button onclick="switchView('documents')" id="nav-documents" class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-3m-6 0a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2H4m2-2h4m4 0v4m0 0h-4"></path></svg>
+                <span class="force-comic">Papiers & Validités</span>
+            </button>
+            <button onclick="switchView('users')" id="nav-users" class="nav-item">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                <span class="force-comic">Utilisateurs</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200 bg-white">
+            <div class="flex justify-between items-center text-xs text-gray-500 font-bold mb-2 font-mono">
+                <span>SYSTÈME</span>
+                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            </div>
+            <div class="text-gray-900 font-mono text-xs tracking-widest">de Gestion 2026. Verssion V01.</div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="app-main">
+        
+        <!-- Header -->
+        <header class="glass-panel z-10 px-8 py-6 flex justify-between items-center mx-4 mt-4">
+            <div>
+                <h2 id="page-title" class="text-3xl text-gray-900 force-comic">Tableau de Bord</h2>
+                <p class="text-gray-500 text-xs font-mono mt-1 font-bold bg-gray-100 inline-block px-3 py-1 rounded border border-gray-200"> Récapitulatif</p>
+            </div>
+            <div class="flex gap-4">
+                <!-- BOUTON PLEIN ÉCRAN DANS LA BARRE DU MENU PRINCIPAL -->
+                <button onclick="toggleFullScreen()" class="btn btn-neutral btn-sm" title="Mode Plein Écran">
+                    <svg id="fs-icon-expand" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                    <svg id="fs-icon-compress" class="hidden" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <!-- BOUTON SITUATION DES CHARGES -->
+                <button onclick="openSituationModal()" class="btn btn-success">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-2H7m0 0a2 2 0 01-2-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-3m-6 0a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2H4m2-2h4m4 0v4m0 0h-4"></path></svg>
+                    <span class="force-comic">SITUATION DES CHARGES</span>
+                </button>
+
+                <button id="global-add-btn" class="hidden btn btn-primary">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span id="btn-text" class="force-comic">AJOUTER</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div id="content-area" class="app-content">
+            
+            <!-- View: Dashboard -->
+            <section id="view-dashboard" class="space-y-6">
+                <!-- Grid 3 avec 6 statistiques et fond gris clair -->
+                <div class="grid-3">
+                    <!-- Application du style CSS spécifique "stat-label-custom" -->
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card">
+                        <h3 class="stat-label-custom">Total Flotte</h3>
+                        <p id="stat-total" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card">
+                        <h3 class="stat-label-custom">Utilisateurs</h3>
+                        <p id="stat-users" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card">
+                        <h3 class="stat-label-custom">En Service</h3>
+                        <p id="stat-in-use" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card">
+                        <h3 class="stat-label-custom">Maintenance</h3>
+                        <p id="stat-maintenance" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card border-l-4 border-l-green-500">
+                        <h3 class="stat-label-custom">Disponibles</h3>
+                        <p id="stat-available" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl relative overflow-hidden group hover:shadow-md transition-shadow bg-stat-card border-l-4 border-l-gray-400">
+                        <h3 class="stat-label-custom">Hors Service</h3>
+                        <p id="stat-out" class="text-4xl stat-number mt-2 stat-text-arial text-center">0</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <div class="px-8 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <h3 class="text-gray-900 force-comic text-lg">SURVEILLANCE DE M.A.J</h3>
+                        <span class="text-xs text-red-500 font-mono font-bold">● LIVE FEED</span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="force-comic">Véhicule</th>
+                                    <th class="force-comic">Immat.</th>
+                                    <th class="force-comic">Chauffeur</th>
+                                    <th class="force-comic">Statut</th>
+                                    <th class="force-comic">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View: Vehicles -->
+            <section id="view-vehicles" class="hidden space-y-6">
+                <!-- TITRE IMPRESSION LISTE VÉHICULES (Caché à l'écran) -->
+                <h2 id="print-vehicle-title" class="hidden">INVENTAIRE DU PARC AUTOMOBILE</h2>
+
+                <div class="glass-panel p-6 rounded-xl flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex gap-2">
+                        <button class="btn btn-sm badge-active" onclick="setFilter('all', this)">Tous</button>
+                        <button class="btn btn-sm badge-inactive" onclick="setFilter('available', this)">Dispo</button>
+                        <button class="btn btn-sm badge-inactive" onclick="setFilter('in-use', this)">Service</button>
+                        <button class="btn btn-sm badge-inactive" onclick="setFilter('maintenance', this)">Atelier</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <div class="relative">
+                            <input type="text" id="search-input" placeholder="SCAN RECHERCHE..." onkeyup="renderVehicles()" class="form-input w-64 text-sm font-bold placeholder-gray-400 font-mono">
+                        </div>
+                        <!-- NOUVEAU BOUTON IMPRIMER LISTE -->
+                        <button onclick="printVehicleReport()" class="btn btn-neutral btn-sm" title="Imprimer la liste des véhicules">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            IMPRIMER
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container rounded-xl">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="force-comic text-center">Photo</th> <!-- NOUVEAU -->
+                                <th class="force-comic">Véhicule</th>
+                                <th class="force-comic">Immat.</th>
+                                <th class="force-comic">Financement</th>
+                                <th class="force-comic">Carburant</th>
+                                <th class="force-comic">Km</th>
+                                <th class="force-comic">Utilisateur</th>
+                                <th class="force-comic">Statut</th>
+                                <th class="force-comic text-right">Commandes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicles-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View: Users -->
+            <section id="view-users" class="hidden space-y-6">
+                <!-- TITRE IMPRESSION LISTE UTILISATEURS (Caché à l'écran) -->
+                <h2 id="print-user-title" class="hidden">LISTE DU PERSONNEL CONDUCTEUR</h2>
+
+                <!-- MODIFICATION: Ajout de la classe 'ui-controls' pour cibler ce bloc spécifiquement à l'impression -->
+                <div class="glass-panel p-6 rounded-xl ui-controls flex justify-between items-center">
+                    <div class="flex gap-2">
+                        <input type="text" id="user-search-input" placeholder="RECHERCHE CONDUCTEUR..." onkeyup="renderUsers()" class="form-input w-64 text-sm font-bold font-mono">
+                    </div>
+                    <!-- NOUVEAU BOUTON IMPRIMER LISTE CONDUCTEURS -->
+                    <div class="flex gap-2">
+                        <button onclick="printUserReport()" class="btn btn-neutral btn-sm" title="Imprimer la liste des conducteurs">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            IMPRIMER
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-xl overflow-hidden">
+                    <div class="px-8 py-4 border-b border-gray-200 bg-gray-50">
+                        <h3 class="text-gray-900 force-comic">BASE DE DONNÉES CONDUCTEURS</h3>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="force-comic">Identité</th>
+                                    <th class="force-comic">Rôle</th>
+                                    <th class="force-comic">État</th>
+                                    <th class="force-comic text-right">Salaire Mensuel</th>
+                                    <th class="force-comic text-right">Jours Mois</th>
+                                    <th class="force-comic text-right bg-blue-50 text-blue-700">Taux Jnl.</th>
+                                    <th class="force-comic text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+             <!-- View: Documents -->
+             <section id="view-documents" class="hidden space-y-6">
+                <div class="glass-panel p-6 rounded-xl flex flex-wrap gap-4 items-center justify-between">
+                    <div class="flex gap-2">
+                        <button class="btn btn-sm badge-active" onclick="setDocFilter('all', this)">Tous</button>
+                        <button class="btn btn-sm badge-inactive" onclick="setDocFilter('valid', this)">Valides</button>
+                        <button class="btn btn-sm badge-inactive" onclick="setDocFilter('expired', this)">Expirés</button>
+                    </div>
+                    <input type="text" id="doc-search-input" placeholder="Véhicule ou Document..." onkeyup="renderDocuments()" class="form-input w-64 text-sm font-bold font-mono">
+                </div>
+
+                <div class="table-container rounded-xl">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="force-comic">Véhicule</th>
+                                <th class="force-comic">Document</th>
+                                <th class="force-comic">Validité</th>
+                                <th class="force-comic">Coût</th>
+                                <th class="force-comic text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documents-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+             <!-- View: Fuel -->
+             <section id="view-fuel" class="hidden space-y-6">
+                <div class="mb-6">
+                     <button onclick="switchView('vehicles')" class="btn btn-neutral btn-sm mb-6">
+                        <span class="text-lg">&larr;</span> RETOUR FLUX
+                     </button>
+                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
+                         <div class="flex items-center gap-6">
+                             <div class="w-16 h-16 rounded-lg bg-blue-50 flex items-center justify-center border-2 border-blue-200">
+                                 <span class="text-3xl">⛽</span>
+                             </div>
+                             <div>
+                                 <h2 id="fuel-vehicle-title" class="text-3xl text-gray-900 force-comic">VÉHICULE</h2>
+                                 <p id="fuel-vehicle-plate" class="text-gray-500 font-mono text-sm font-bold">ID: UNKNOWN</p>
+                             </div>
+                         </div>
+                         <input type="text" id="fuel-search-input" placeholder="RECHERCHE..." onkeyup="renderFuelTable()" class="form-input w-64 ml-auto text-sm font-bold font-mono">
+                     </div>
+                </div>
+                <div class="grid-2 mb-6">
+                    <div class="glass-panel p-6 rounded-xl">
+                        <p class="text-gray-500 text-sm uppercase font-bold">Total Consommé (Coût)</p>
+                        <p id="fuel-total-cost" class="text-2xl text-gray-900 font-bold font-mono stat-number">0 DH</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-xl">
+                        <p class="text-gray-500 text-sm uppercase font-bold">Moyenne Globale</p>
+                        <p id="fuel-avg-conso" class="text-2xl text-gray-900 font-bold font-mono stat-number">--</p>
+                    </div>
+                </div>
+                <div class="table-container rounded-xl">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="force-comic">Date</th>
+                                <th class="force-comic">Km Arrivée</th>
+                                <th class="force-comic">Litres</th>
+                                <th class="force-comic">Coût</th>
+                                <th class="force-comic text-right">Conso (L/100)</th>
+                                <th class="force-comic text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fuel-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View: Maintenance -->
+            <section id="view-maintenance" class="hidden space-y-6">
+                <div class="mb-6">
+                     <button onclick="switchView('vehicles')" class="btn btn-neutral btn-sm mb-6">
+                        <span class="text-lg">&larr;</span> RETOUR FLUX
+                     </button>
+                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
+                         <div class="flex items-center gap-6">
+                             <div class="w-16 h-16 rounded-lg bg-blue-50 flex items-center justify-center border-2 border-blue-200">
+                                 <span class="text-3xl">🔧</span>
+                             </div>
+                             <div>
+                                 <h2 id="maint-vehicle-title" class="text-3xl text-gray-900 force-comic">VÉHICULE</h2>
+                                 <p id="maint-vehicle-plate" class="text-gray-500 font-mono text-sm font-bold">ID: UNKNOWN</p>
+                             </div>
+                         </div>
+                         <input type="text" id="maint-search-input" placeholder="RECHERCHE..." onkeyup="renderMaintenanceTable()" class="form-input w-64 ml-auto text-sm font-bold font-mono">
+                     </div>
+                </div>
+                 <div class="glass-panel p-6 rounded-xl">
+                        <p class="text-gray-500 text-sm uppercase font-bold">Total Maintenance</p>
+                        <p id="maint-total-cost" class="text-2xl text-gray-900 font-bold font-mono stat-number">0 DH</p>
+                </div>
+                <div class="table-container rounded-xl">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="force-comic">Date</th>
+                                <th class="force-comic">Type</th>
+                                <th class="force-comic">Km Arrivée</th>
+                                <th class="force-comic">Prochain Vidange</th>
+                                <th class="force-comic">Coût</th>
+                                <th class="force-comic text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenance-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- View: Assignments -->
+            <section id="view-assignments" class="hidden space-y-6">
+                 <div class="mb-6">
+                     <button onclick="goBackToSource()" class="btn btn-neutral btn-sm mb-6">
+                        <span class="text-lg">&larr;</span> RETOUR
+                     </button>
+                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
+                        <div>
+                            <h2 id="assignment-title" class="text-3xl text-gray-900 force-comic">HISTORIQUE</h2>
+                            <p id="assignment-subtitle" class="text-gray-500 font-mono text-sm font-bold">Données chiffrées</p>
+                        </div>
+                         <input type="text" id="assign-search-input" placeholder="RECHERCHE..." onkeyup="renderAssignmentsTable()" class="form-input w-64 ml-auto text-sm font-bold font-mono">
+                     </div>
+                </div>
+                <div class="table-container rounded-xl">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="force-comic">Début</th>
+                                <th class="force-comic">Fin</th>
+                                <th class="force-comic">Durée</th> <!-- NOUVEAU -->
+                                <th class="force-comic">Véhicule</th>
+                                <th class="force-comic">Utilisateur</th>
+                                <th class="force-comic">Statut</th>
+                                <th class="force-comic text-right">Actions</th> <!-- AJOUT ACTIONS -->
+                            </tr>
+                        </thead>
+                        <tbody id="assignments-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAL SYSTEM -->
+    <!-- Overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden opacity-0 transition-opacity duration-300">
+        
+        <!-- Vehicle Modal -->
+        <div id="modal-vehicle" class="modal-content hidden">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                <h3 class="text-4xl text-gray-900 force-comic">CONFIGURATION VÉHICULE</h3>
+                
+                <!-- Boutons Retour et Fermer en haut à droite -->
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm">
+                        <span class="text-lg">&larr;</span> RETOUR
+                    </button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors p-2"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-4">
+                <input type="hidden" id="vehicle-id">
+                
+                <div class="grid-2">
+                    <div>
+                        <label class="form-label force-comic">Marque</label>
+                        <input type="text" id="input-brand" required class="form-input text-sm font-bold">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Modèle</label>
+                        <input type="text" id="input-model" required class="form-input text-sm font-bold">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Immatriculation</label>
+                        <input type="text" id="input-plate" required class="form-input text-sm font-mono font-bold">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Mise Circ.</label>
+                        <input type="date" id="input-registration-date" required class="form-input text-sm font-bold">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Carburant</label>
+                        <select id="input-fuel" class="form-select text-sm font-bold">
+                            <option value="Essence">Essence</option><option value="Diesel">Diesel</option><option value="Électrique">Électrique</option><option value="Hybride">Hybride</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Statut</label>
+                        <select id="input-status" class="form-select text-sm font-bold">
+                            <option value="available">Disponible</option><option value="in-use">En service</option><option value="maintenance">Maintenance</option><option value="out">Hors service</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- UPLOAD PHOTO -->
+                <div class="form-separator">
+                    <label class="form-label force-comic">Photo du Véhicule</label>
+                    <div class="image-upload-container">
+                        <input type="file" id="input-vehicle-image" accept="image/*" class="form-input text-sm font-normal">
+                        <img id="preview-vehicle-image" class="image-preview" alt="Aperçu photo">
+                    </div>
+                </div>
+                
+                <div class="form-separator"></div>
+
+                <div>
+                    <label class="form-label force-comic">Option (Financement)</label>
+                    <select id="input-option" onchange="handleFinanceOptionChange()" class="form-select text-sm font-bold">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Patrimoine">Patrimoine</option>
+                        <option value="Location">Location</option>
+                    </select>
+                </div>
+
+                <div id="finance-section" class="hidden bg-gray-50 p-6 rounded border border-gray-200 space-y-3">
+                    <div class="grid-2">
+                        <div>
+                            <label id="label-finance-amount" class="form-label force-comic">Montant</label>
+                            <input type="number" id="input-finance-amount" step="0.01" class="form-input text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="form-label force-comic">Date Début</label>
+                            <input type="date" id="input-finance-start" class="form-input text-sm font-bold">
+                        </div>
+                        <div>
+                            <label class="form-label force-comic">Date Fin</label>
+                            <input type="date" id="input-finance-end" class="form-input text-sm font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-separator"></div>
+
+                <div class="grid-2">
+                    <div>
+                        <label class="form-label force-comic">Utilisateur</label>
+                        <select id="input-user-id" onchange="handleUserSelectChange()" class="form-select text-sm font-bold">
+                            <option value="">-- Aucune affectation --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Kilométrage</label>
+                        <input type="number" id="input-mileage" required min="0" class="form-input text-sm font-bold">
+                    </div>
+                </div>
+                
+                <div id="assignment-date-group" class="hidden">
+                    <label class="form-label force-comic">Date Affectation</label>
+                    <input type="date" id="input-assignment-date" class="form-input text-sm font-bold">
+                    <p class="text-xs text-blue-600 mt-1 font-bold">La modification du conducteur clôturera automatiquement l'affectation précédente.</p>
+                </div>
+
+                <div class="flex justify-end gap-4 pt-8 border-t border-gray-200 mt-6">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- User Modal -->
+        <div id="modal-user" class="modal-content hidden">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                <h3 class="text-4xl text-gray-900 force-comic">CONFIGURATION UTILISATEUR</h3>
+                 <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm"><span class="text-lg">&larr;</span> RETOUR</button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors p-2"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            <form id="user-form" onsubmit="handleUserSubmit(event)" class="space-y-6">
+                <input type="hidden" id="user-id">
+                <div>
+                    <label class="form-label force-comic">Nom Complet</label>
+                    <input type="text" id="input-user-name" required class="form-input font-bold">
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label class="form-label force-comic">Rôle</label>
+                        <select id="input-user-role" class="form-select font-bold">
+                            <option value="Conducteur">Conducteur</option><option value="Manager">Manager</option><option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">État</label>
+                        <select id="input-user-status" class="form-select font-bold">
+                            <option value="active">Actif</option><option value="inactive">Inactif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label class="form-label force-comic">Salaire Mensuel (DH)</label>
+                        <input type="number" id="input-user-salary" min="0" step="0.01" class="form-input font-mono font-bold text-blue-700">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Nombre Jours Mois</label>
+                        <input type="number" id="input-user-days" min="1" value="30" class="form-input font-mono font-bold text-blue-700">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4 pt-8 border-t border-gray-200 mt-6">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+        
+         <!-- Fuel Modal -->
+        <div id="modal-fuel" class="modal-content hidden">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                <h3 class="text-4xl text-gray-900 force-comic">PLEIN CARBURANT</h3>
+                 <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm"><span class="text-lg">&larr;</span> RETOUR</button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors p-2"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            <form id="fuel-form" onsubmit="handleFuelSubmit(event)" class="space-y-6">
+                <input type="hidden" id="fuel-vehicle-id"><input type="hidden" id="fuel-log-id">
+                <div><label class="form-label force-comic">Date</label><input type="date" id="fuel-date" required class="form-input font-bold"></div>
+                <div>
+                    <label class="form-label force-comic">Km Arrivée</label>
+                    <input type="number" id="fuel-mileage" required class="form-input font-bold">
+                    <p class="text-sm text-gray-500 mt-2 font-bold" id="fuel-hint">Précédent: -</p>
+                </div>
+                <div class="grid-2">
+                    <div><label class="form-label force-comic">Litres</label><input type="number" id="fuel-liters" required class="form-input font-bold"></div>
+                    <div><label class="form-label force-comic">Coût (DH)</label><input type="number" id="fuel-cost" required step="0.01" class="form-input font-bold"></div>
+                </div>
+                <div class="flex justify-end gap-4 pt-8 border-t border-gray-200 mt-6">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Maintenance Modal -->
+        <div id="modal-maintenance" class="modal-content hidden">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                <h3 class="text-4xl text-gray-900 force-comic">INTERVENTION TECHNIQUE</h3>
+                 <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm"><span class="text-lg">&larr;</span> RETOUR</button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors p-2"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            <form id="maintenance-form" onsubmit="handleMaintenanceSubmit(event)" class="space-y-6">
+                <input type="hidden" id="maint-vehicle-id"><input type="hidden" id="maint-log-id">
+                <div><label class="form-label force-comic">Date</label><input type="date" id="maint-date" required class="form-input font-bold"></div>
+                <div>
+                    <label class="form-label force-comic">Type</label>
+                    <select id="maint-type" required onchange="toggleOilFields()" class="form-select font-bold">
+                        <option value="Vidange">Vidange</option><option value="Pneus">Pneus</option><option value="Mécanique">Mécanique</option><option value="Carrosserie">Carrosserie</option><option value="Contrôle Technique">Contrôle Technique</option><option value="Autre">Autre</option>
+                    </select>
+                </div>
+                <div id="oil-fields" class="hidden bg-gray-50 p-6 rounded border border-gray-200 space-y-3">
+                    <label class="form-label force-comic">Huile</label>
+                    <select id="maint-oil-type" class="form-select font-bold mb-3">
+                        <option value="5W30">5W30</option><option value="5W40">5W40</option><option value="10W40">10W40</option>
+                    </select>
+                    <label class="form-label force-comic">Prochain Vidange (km)</label>
+                    <input type="number" id="maint-interval" value="10000" class="form-input font-bold">
+                </div>
+                <div>
+                    <label class="form-label force-comic">Km Arrivée</label>
+                    <input type="number" id="maint-mileage" required class="form-input font-bold">
+                     <p class="text-sm text-gray-500 mt-2 font-bold" id="maint-hint">Précédent: -</p>
+                </div>
+                <div>
+                     <label class="form-label force-comic">Coût (DH)</label>
+                     <input type="number" id="maint-cost" required step="0.01" class="form-input font-bold">
+                </div>
+                <div class="flex justify-end gap-4 pt-8 border-t border-gray-200 mt-6">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Document Modal -->
+         <div id="modal-document" class="modal-content hidden">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                <h3 class="text-4xl text-gray-900 force-comic">DOCUMENT ADMINISTRATIF</h3>
+                 <div class="flex gap-2">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm"><span class="text-lg">&larr;</span> RETOUR</button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors p-2"><svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            <form id="document-form" onsubmit="handleDocumentSubmit(event)" class="space-y-6">
+                <input type="hidden" id="doc-id">
+                <div>
+                    <label class="form-label force-comic">Véhicule</label>
+                    <select id="doc-vehicle-select" required class="form-select font-bold"></select>
+                </div>
+                <div>
+                    <label class="form-label force-comic">Nom Document</label>
+                    <input list="doc-types" id="doc-name" required class="form-input font-bold" placeholder="Sélectionner ou saisir...">
+                    <datalist id="doc-types">
+                        <option value="Assurance"><option value="Contrôle Technique"><option value="Carte Grise"><option value="Vignette Crit'Air"><option value="Attestation Vol"><option value="Permis de Conduire"><option value="Carte Verte"><option value="Mouchard"><option value="Autorisation"><option value="Autre">
+                    </datalist>
+                </div>
+                <div class="grid-2">
+                    <div><label class="form-label force-comic">Début</label><input type="date" id="doc-start" required class="form-input font-bold"></div>
+                    <div><label class="form-label force-comic">Fin</label><input type="date" id="doc-end" required class="form-input font-bold"></div>
+                </div>
+                <div>
+                     <label class="form-label force-comic">Coût Total (DH)</label>
+                     <input type="number" id="doc-cost" required step="0.01" class="form-input font-bold">
+                </div>
+                <div class="flex justify-end gap-4 pt-8 border-t border-gray-200 mt-6">
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm">Annuler</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- SITUATION MODAL -->
+        <div id="modal-situation" class="modal-content hidden" style="max-width: 90rem;">
+            <div class="flex justify-between items-center py-4 px-8 border-b border-gray-200 bg-gray-50 -mx-8 -my-8 mb-6 p-8 rounded-t-xl">
+                <!-- TITRE AVEC CLASSE force-comic POUR COMIC SANS MS ITALIQUE -->
+                <h3 class="text-3xl text-gray-900 force-comic">Situation des Charges Par Période</h3>
+                 <div class="flex gap-2">
+                    <!-- NOUVEAU BOUTON IMPRIMER -->
+                    <button onclick="window.print()" class="btn btn-neutral btn-sm" title="Imprimer le rapport">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    </button>
+                    <button type="button" onclick="closeModal()" class="btn btn-neutral btn-sm"><span class="text-lg">&larr;</span> RETOUR</button>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-800 transition-colors"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+            
+            <form id="situation-form" onsubmit="handleSituationSubmit(event)" class="space-y-4 mb-8">
+                <div class="grid-2 mb-6">
+                    <div>
+                        <label class="form-label force-comic">Date Début</label>
+                        <input type="date" id="sit-start-date" required class="form-input font-bold">
+                    </div>
+                    <div>
+                        <label class="form-label force-comic">Date Fin</label>
+                        <input type="date" id="sit-end-date" required class="form-input font-bold">
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="form-label force-comic">Filtrer par Véhicule</label>
+                    <select id="sit-vehicle-filter" class="form-select font-bold"></select>
+                </div>
+
+                <div class="flex justify-end">
+                     <button type="submit" class="btn btn-success">GÉNÉRER</button>
+                </div>
+            </form>
+
+            <!-- TITRE IMPRESSION (Caché à l'écran, visible à l'impression) -->
+            <h2 id="print-title" class="hidden"></h2>
+
+            <div class="overflow-hidden max-h-[60vh] border border-gray-200 rounded-xl">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <!-- EN-TÊTES DE TABLEAU AVEC LA CLASSE force-comic -->
+                                <th class="force-comic text-left">Véhicule</th>
+                                <th class="force-comic text-right">Maintenance</th>
+                                <th class="force-comic text-right">Carburant</th>
+                                <th class="force-comic text-right text-blue-700 font-bold bg-blue-50">Personnel (Prorata)</th>
+                                <th class="force-comic text-right">Docs (Prorata)</th>
+                                <th class="force-comic text-right text-purple-700 font-bold bg-purple-50">Financement (Prorata)</th>
+                                <th class="force-comic text-right text-green-700 font-bold bg-green-50">TOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="situation-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-8 border-t border-gray-200 text-right">
+                <!-- MODIFICATION ICI: COOPER BLACK (COOPER BLAKE), GRAS, BLEU MARINE -->
+                <p class="font-bold" style="font-family: 'Cooper Black', 'Cooper Std Black', fantasy, sans-serif; color: #000080; font-size: 1.3rem;">TOTAL GLOBAL : <span id="sit-grand-total" class="ml-2 sit-total-result">0 DH</span></p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        function getStorage(key, defaultData) {
+            const stored = localStorage.getItem('zai_' + key);
+            return stored ? JSON.parse(stored) : defaultData;
+        }
+
+        function setStorage(key, data) {
+            localStorage.setItem('zai_' + key, JSON.stringify(data));
+        }
+
+        function saveAllData() {
+            setStorage('vehicles', vehicles);
+            setStorage('users', users);
+            setStorage('fuelLogs', fuelLogs);
+            setStorage('maintenanceLogs', maintenanceLogs);
+            setStorage('assignmentHistory', assignmentHistory);
+            setStorage('documents', documents);
+        }
+
+        const defaultVehicles = [
+            { id: 1, brand: 'Peugeot', model: '3008', plate: 'AB-123-CD', registrationDate: '2021-05-10', userId: 1, assignmentDate: '2024-01-15', fuel: 'Diesel', mileage: 45000, status: 'in-use', option: 'Patrimoine', financeAmount: 450.00, financeStartDate: '2024-01-01', financeEndDate: '2025-12-31', image: null }
+        ];
+        const defaultUsers = [
+            { id: 1, name: 'Jean Dupont', role: 'Conducteur', status: 'active', salary: 2500.00, daysInMonth: 30 },
+            { id: 2, name: 'Marie Curie', role: 'Manager', status: 'active', salary: 4500.00, daysInMonth: 30 },
+            { id: 3, name: 'Pierre Martin', role: 'Conducteur', status: 'inactive', salary: 2200.00, daysInMonth: 28 }
+        ];
+        const defaultFuelLogs = [
+            { id: 1, vehicleId: 1, date: '2024-01-15', mileage: 40000, liters: 45, cost: 450.00 },
+            { id: 2, vehicleId: 1, date: '2024-02-20', mileage: 42500, liters: 42, cost: 432.50 },
+            { id: 3, vehicleId: 1, date: '2024-04-10', mileage: 45000, liters: 48, cost: 500.00 }
+        ];
+        const defaultMaintenanceLogs = [
+            { id: 1, vehicleId: 1, date: '2024-01-10', mileage: 39000, type: 'Vidange', oilType: '5W30', interval: 10000, cost: 1200.00 }
+        ];
+        const defaultAssignmentHistory = [
+            { id: 1, vehicleId: 1, userId: 1, startDate: '2024-01-15', endDate: '2024-02-01' },
+            { id: 2, vehicleId: 1, userId: 1, startDate: '2024-03-01', endDate: null }
+        ];
+        const defaultDocuments = [
+            { id: 1, vehicleId: 1, name: 'Assurance', startDate: '2024-01-01', endDate: '2024-12-31', cost: 1000.00 },
+            { id: 2, vehicleId: 1, name: 'Assurance Complémentaire', startDate: '2024-06-01', endDate: '2024-12-01', cost: 800.00 }
+        ];
+
+        let vehicles = getStorage('vehicles', defaultVehicles);
+        let users = getStorage('users', defaultUsers);
+        let fuelLogs = getStorage('fuelLogs', defaultFuelLogs);
+        let maintenanceLogs = getStorage('maintenanceLogs', defaultMaintenanceLogs);
+        let assignmentHistory = getStorage('assignmentHistory', defaultAssignmentHistory);
+        let documents = getStorage('documents', defaultDocuments);
+
+        let currentFilter = 'all';
+        let currentDocFilter = 'all';
+        let currentFuelVehicleId = null;
+        let currentMaintVehicleId = null;
+        let currentAssignmentView = { type: null, id: null };
+
+        // --- FULLSCREEN LOGIC ---
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            const expandIcon = document.getElementById('fs-icon-expand');
+            const compressIcon = document.getElementById('fs-icon-compress');
+            
+            if (document.fullscreenElement) {
+                expandIcon.classList.add('hidden');
+                compressIcon.classList.remove('hidden');
+            } else {
+                expandIcon.classList.remove('hidden');
+                compressIcon.classList.add('hidden');
+            }
+        });
+
+        // --- IMAGE UPLOAD LOGIC ---
+        const imgInput = document.getElementById('input-vehicle-image');
+        const imgPreview = document.getElementById('preview-vehicle-image');
+
+        if(imgInput) {
+            imgInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imgPreview.src = event.target.result;
+                        imgPreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    imgPreview.style.display = 'none';
+                    imgPreview.src = '';
+                }
+            });
+        }
+
+        // --- CUSTOM 3D ENGINE (CANVAS ONLY) ---
+        (function() {
+            const container = document.getElementById('canvas-container');
+            if(!container) return;
+            const canvas = document.getElementById('carCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let width, height;
+            let rotationY = 0;
+            let rotationX = 0;
+            let mouseX = 0, mouseY = 0;
+
+            function resize() {
+                width = container.clientWidth;
+                height = container.clientHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            });
+
+            function project(x, y, z) {
+                const fov = 400;
+                const scale = fov / (fov + z + 200); 
+                const x2d = x * scale + width / 2;
+                const y2d = -y * scale + height / 2;
+                return { x: x2d, y: y2d, scale: scale };
+            }
+
+            function rotate(x, y, z, ry, rx) {
+                let x1 = x * Math.cos(ry) - z * Math.sin(ry);
+                let z1 = x * Math.sin(ry) + z * Math.cos(ry);
+                let y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
+                let z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+                return { x: x1, y: y2, z: z2 };
+            }
+
+            const carParts = [
+                // Body (Box)
+                [
+                    {x:-60, y:15, z:80}, {x:60, y:15, z:80}, {x:60, y:-15, z:80}, {x:-60, y:-15, z:80}, 
+                    {x:-60, y:15, z:-80}, {x:60, y:15, z:-80}, {x:60, y:-15, z:-80}, {x:-60, y:-15, z:-80} 
+                ],
+                // Cabin (Box)
+                [
+                    {x:-45, y:35, z:20}, {x:45, y:35, z:20}, {x:45, y:15, z:20}, {x:-45, y:15, z:20},
+                    {x:-45, y:35, z:-50}, {x:45, y:35, z:-50}, {x:45, y:15, z:-50}, {x:-45, y:15, z:-50}
+                ]
+            ];
+
+            function drawBox(verts) {
+                const rVerts = verts.map(v => rotate(v.x, v.y, v.z, rotationY, rotationX));
+                const proj = rVerts.map(v => project(v.x, v.y, v.z));
+
+                ctx.strokeStyle = '#2563eb'; 
+                ctx.lineWidth = 2;
+
+                const lines = [
+                    [0,1],[1,2],[2,3],[3,0], 
+                    [4,5],[5,6],[6,7],[7,4], 
+                    [0,4],[1,5],[2,6],[3,7] 
+                ];
+
+                lines.forEach(line => {
+                    const p1 = proj[line[0]];
+                    const p2 = proj[line[1]];
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                });
+            }
+
+            function animate() {
+                // Noir Clair (Anthracite) demandé
+                ctx.fillStyle = '#1f2937'; 
+                ctx.fillRect(0, 0, width, height);
+
+                rotationY += 0.01;
+                rotationY += (mouseX - rotationY) * 0.1;
+                rotationX += (mouseY - rotationX) * 0.1;
+
+                drawBox(carParts[0]);
+                drawBox(carParts[1]);
+
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+
+        // --- CORE LOGIC & UI ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+        });
+
+        function switchView(viewName) {
+            ['dashboard', 'vehicles', 'users', 'documents', 'fuel', 'maintenance', 'assignments'].forEach(v => {
+                const el = document.getElementById('view-' + v);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(b => {
+                b.classList.remove('active');
+                
+                if(b.id === 'nav-' + viewName) {
+                    b.classList.add('active');
+                }
+            });
+
+            const titleEl = document.getElementById('page-title');
+            titleEl.innerText = {
+                'dashboard': 'TABLEAU DE BORD',
+                'vehicles': 'PARC VÉHICULES',
+                'users': 'UTILISATEURS',
+                'documents': 'DOCUMENTS',
+                'fuel': 'JOURNAL CARBURANT',
+                'maintenance': 'HISTORIQUE MAINTENANCE',
+                'assignments': 'HISTORIQUE AFFECTATIONS'
+            }[viewName];
+
+            const btn = document.getElementById('global-add-btn');
+            const btnText = document.getElementById('btn-text');
+            btn.classList.add('hidden');
+            
+            if (viewName === 'vehicles') {
+                btn.classList.remove('hidden');
+                btn.onclick = () => openModal('vehicle', 'add');
+                btnText.innerText = 'NOUVEAU VÉHICULE';
+            } else if (viewName === 'users') {
+                btn.classList.remove('hidden');
+                btn.onclick = () => openModal('user', 'add');
+                btnText.innerText = 'NOUVEAU UTILISATEUR';
+            } else if (viewName === 'documents') {
+                btn.classList.remove('hidden');
+                btn.onclick = () => openModal('document', 'add');
+                btnText.innerText = 'NOUVEAU DOCUMENT';
+            } else if (viewName === 'fuel') {
+                btn.classList.remove('hidden');
+                btn.onclick = () => openModal('fuel', 'add');
+                btnText.innerText = 'SAISIR PLEIN';
+            } else if (viewName === 'maintenance') {
+                btn.classList.remove('hidden');
+                btn.onclick = () => openModal('maintenance', 'add');
+                btnText.innerText = 'DÉCLARER RÉPARATION';
+            }
+
+            if(viewName === 'dashboard') renderDashboard();
+            if(viewName === 'vehicles') renderVehicles();
+            if(viewName === 'users') renderUsers();
+            if(viewName === 'documents') renderDocuments();
+            if(viewName === 'fuel') renderFuelTable();
+            if(viewName === 'maintenance') renderMaintenanceTable();
+        }
+
+        function renderDashboard() {
+            document.getElementById('stat-total').innerText = vehicles.length;
+            document.getElementById('stat-users').innerText = users.filter(u => u.status === 'active').length;
+            document.getElementById('stat-in-use').innerText = vehicles.filter(v => v.status === 'in-use').length;
+            document.getElementById('stat-maintenance').innerText = vehicles.filter(v => v.status === 'maintenance').length;
+            
+            // NOUVEAUX COMPTES
+            document.getElementById('stat-available').innerText = vehicles.filter(v => v.status === 'available').length;
+            document.getElementById('stat-out').innerText = vehicles.filter(v => v.status === 'out').length;
+
+            const tbody = document.getElementById('dashboard-table-body');
+            tbody.innerHTML = '';
+            vehicles.slice(0, 5).forEach(v => {
+                const u = users.find(user => user.id === v.userId);
+                tbody.innerHTML += `
+                    <tr class="group hover:bg-blue-50 transition-colors">
+                        <td class="font-bold text-gray-900">${v.brand} ${v.model}</td>
+                        <td class="font-mono font-bold text-blue-700">${v.plate}</td>
+                        <td class="text-gray-600">${u ? u.name : '-'}</td>
+                        <td>${getStatusBadge(v.status)}</td>
+                        <td class="text-right"><button onclick="switchView('vehicles')" class="text-blue-600 font-bold hover:underline text-sm uppercase">Détails &rarr;</button></td>
+                    </tr>`;
+            });
+        }
+
+        function renderVehicles() {
+            const tbody = document.getElementById('vehicles-table-body');
+            const term = document.getElementById('search-input').value.toLowerCase();
+            tbody.innerHTML = '';
+            
+            const filtered = vehicles.filter(v => {
+                const matchFilter = currentFilter === 'all' || v.status === currentFilter;
+                const u = users.find(u => u.id === v.userId);
+                const searchStr = `${v.brand} ${v.model} ${v.plate} ${u ? u.name : ''}`.toLowerCase();
+                return matchFilter && searchStr.includes(term);
+            });
+
+            filtered.forEach(v => {
+                const u = users.find(user => user.id === v.userId);
+                let financeInfo = '-';
+                if(v.option === 'Patrimoine') {
+                    let months = '';
+                    if(v.financeStartDate && v.financeEndDate) {
+                        const start = new Date(v.financeStartDate);
+                        const end = new Date(v.financeEndDate);
+                        const monthDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                        months = `(${monthDiff} mois)`;
+                    }
+                    financeInfo = `<span class="text-sm font-bold text-blue-700">Traite: ${v.financeAmount} DH</span> <br><span class="text-xs text-gray-500">${formatDate(v.financeStartDate)} au ${formatDate(v.financeEndDate)} ${months}</span>`;
+                } else if(v.option === 'Location') {
+                    let months = '';
+                    if(v.financeStartDate && v.financeEndDate) {
+                        const start = new Date(v.financeStartDate);
+                        const end = new Date(v.financeEndDate);
+                        const monthDiff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                        months = `(${monthDiff} mois)`;
+                    }
+                    financeInfo = `<span class="text-sm font-bold text-purple-700">Loyer: ${v.financeAmount} DH</span> <br><span class="text-xs text-gray-500">${formatDate(v.financeStartDate)} au ${formatDate(v.financeEndDate)} ${months}</span>`;
+                }
+
+                // LOGIQUE AFFICHAGE PHOTO
+                const photoHtml = v.image 
+                    ? `<img src="${v.image}" class="vehicle-thumb-table" alt="Photo">` 
+                    : `<div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 font-bold text-xs border border-gray-300">N/A</div>`;
+
+                tbody.innerHTML += `
+                    <tr class="group">
+                        <td class="text-center">${photoHtml}</td>
+                        <td class="font-bold text-gray-900">${v.brand} ${v.model}</td>
+                        <td class="font-mono font-bold text-blue-700 text-lg tracking-wider">${v.plate}</td>
+                        <td>${financeInfo}</td>
+                        <td class="text-gray-600 text-sm uppercase">${v.fuel}</td>
+                        <td class="text-gray-600 font-mono">${v.mileage.toLocaleString()}</td>
+                        <td>${u ? `<span class="text-white bg-gray-200 px-3 py-1 rounded text-sm border border-gray-300 font-bold text-gray-800">${u.name}</span>` : '-'}</td>
+                        <td>${getStatusBadge(v.status)}</td>
+                        <td class="text-right flex justify-end gap-2">
+                             <button onclick="openFuelHistory(${v.id})" class="p-1 hover:bg-gray-100 transition-colors border border-gray-300 rounded bg-white" title="Carburant">⛽</button>
+                             <button onclick="openMaintenanceHistory(${v.id})" class="p-1 hover:bg-gray-100 transition-colors border border-gray-300 rounded bg-white" title="Maintenance">🔧</button>
+                             <button onclick="openAssignmentHistory('vehicle', ${v.id})" class="p-1 hover:bg-gray-100 transition-colors border border-gray-300 rounded bg-white" title="Historique">📜</button>
+                             <button onclick="openModal('vehicle', 'edit', ${v.id})" class="p-1 hover:bg-gray-100 transition-colors border border-gray-300 rounded bg-white">✏️️️</button>
+                             <button onclick="deleteVehicle(${v.id})" class="p-1 hover:bg-red-50 transition-colors border border-gray-300 rounded bg-white">🗑️</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // --- FONCTION IMPRESSION LISTE VÉHICULES ---
+        function printVehicleReport() {
+            document.body.classList.add('printing-vehicles');
+            window.print();
+            // Nettoyage après l'impression (délai pour s'assurer que le rendu est terminé)
+            setTimeout(() => {
+                document.body.classList.remove('printing-vehicles');
+            }, 1000);
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            const term = document.getElementById('user-search-input').value.toLowerCase();
+            tbody.innerHTML = '';
+            
+            const filtered = users.filter(u => {
+                const searchStr = `${u.name} ${u.role} ${u.salary}`.toLowerCase();
+                return searchStr.includes(term);
+            });
+
+            filtered.forEach(u => {
+                const days = u.daysInMonth || 30; 
+                const dailySalary = days > 0 ? (u.salary / days) : 0;
+
+                tbody.innerHTML += `
+                    <tr class="group">
+                        <td class="font-bold text-gray-900">${u.name}</td>
+                        <td class="text-gray-600 text-sm uppercase">${u.role}</td>
+                        <td><span class="px-3 py-1 rounded text-sm uppercase border border border-gray-300 ${u.status==='active'?'bg-green-50 text-green-700':'bg-gray-100 text-gray-600'}">${u.status}</span></td>
+                        <td class="text-right font-mono font-bold text-gray-900">
+                            ${u.salary ? u.salary.toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' DH' : '-'}
+                        </td>
+                        <td class="text-center text-xs font-mono text-gray-500">${days}</td>
+                        <td class="text-right font-mono font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded mx-2">
+                            ${dailySalary.toLocaleString('fr-FR', {minimumFractionDigits: 2})} DH
+                        </td>
+                        <td class="text-right">
+                             <button onclick="openModal('user', 'edit', ${u.id})" class="p-1 hover:bg-gray-100 transition-colors border border-gray-300 rounded bg-white">✏️</button>
+                             <button onclick="deleteUser(${u.id})" class="p-1 hover:bg-red-50 transition-colors border border-gray-300 rounded bg-white">🗑️</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        // --- NOUVEAU: FONCTION IMPRESSION LISTE UTILISATEURS ---
+        function printUserReport() {
+            document.body.classList.add('printing-users');
+            window.print();
+            // Nettoyage après l'impression
+            setTimeout(() => {
+                document.body.classList.remove('printing-users');
+            }, 1000);
+        }
+
+        function renderDocuments() {
+            const tbody = document.getElementById('documents-table-body');
+            tbody.innerHTML = '';
+            
+            const term = document.getElementById('doc-search-input').value.toLowerCase();
+
+            const filtered = documents.filter(d => {
+                const v = vehicles.find(x => x.id === d.vehicleId);
+                
+                const today = new Date(); today.setHours(0,0,0,0);
+                const end = new Date(d.endDate);
+                let status = 'valid';
+                if (end < today) status = 'expired';
+                else if (Math.abs(end-today)/(1000*60*60*24) < 30) status = 'warning';
+                const matchesFilter = currentDocFilter === 'all' || currentDocFilter === status;
+
+                let matchesSearch = true;
+                if (term) {
+                    const docNameMatch = d.name.toLowerCase().includes(term);
+                    let vehicleMatch = false;
+                    if(v) {
+                        const vName = (v.brand + ' ' + v.model + ' ' + v.plate).toLowerCase();
+                        vehicleMatch = vName.includes(term);
+                    }
+                    
+                    matchesSearch = docNameMatch || vehicleMatch;
+                }
+
+                return matchesFilter && matchesSearch;
+            }).sort((a,b) => new Date(a.endDate) - new Date(b.endDate));
+
+            filtered.forEach(d => {
+                const v = vehicles.find(x => x.id === d.vehicleId);
+                const today = new Date(); today.setHours(0,0,0,0);
+                const end = new Date(d.endDate);
+
+                // LOGIQUE DE COULEUR POUR LA DATE
+                // Si expiré -> Rouge, Sinon (Valide ou Avertissement) -> Vert
+                const dateColorClass = end < today ? 'text-red-600 font-bold' : 'text-green-700 font-bold';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono font-bold text-blue-700">${v ? v.plate : '?'}</td>
+                        <td class="text-gray-900 font-bold">${d.name}</td>
+                        <!-- APPLICATION DE LA CLASSE DE COULEUR -->
+                        <td class="font-mono text-sm ${dateColorClass}">${formatDate(d.endDate)}</td>
+                        <td class="font-mono text-sm font-bold text-gray-700">${d.cost.toFixed(2)} DH</td>
+                        <td class="text-right flex justify-end items-center gap-2">
+                             <button onclick="openModal('document', 'edit', ${d.id})" class="hover:bg-gray-100 border border-gray-300 rounded bg-white p-1">✏️</button>
+                             <button onclick="deleteDocument(${d.id})" class="text-gray-500 font-bold hover:bg-red-50 ml-2 border border-gray-300 rounded bg-white p-1">✕</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function renderFuelTable() {
+            const tbody = document.getElementById('fuel-table-body');
+            const term = document.getElementById('fuel-search-input')?.value.toLowerCase() || '';
+            tbody.innerHTML = '';
+            
+            let logsAsc = fuelLogs.filter(l => l.vehicleId === currentFuelVehicleId)
+                .filter(l => l.date.includes(term) || l.cost.toString().includes(term) || l.mileage.toString().includes(term))
+                .sort((a,b) => a.mileage - b.mileage);
+            
+            let displayData = logsAsc.map((current, index) => {
+                let consumption = '-';
+                if (index > 0) {
+                    let prev = logsAsc[index - 1];
+                    let distance = current.mileage - prev.mileage;
+                    if (distance > 0) {
+                        let rate = (current.liters / distance) * 100;
+                        consumption = rate.toFixed(1);
+                    }
+                }
+                return { ...current, consumption };
+            });
+
+            let displayDataDesc = displayData.sort((a,b) => b.mileage - a.mileage);
+
+            let totalCost = 0;
+
+            displayDataDesc.forEach(l => {
+                totalCost += l.cost;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono text-sm text-gray-600">${formatDate(l.date)}</td>
+                        <td class="font-bold text-gray-900">${l.mileage} km</td>
+                        <td class="text-gray-700">${l.liters} L</td>
+                        <td class="font-bold text-gray-900">${l.cost} DH</td>
+                        <td class="text-right font-mono text-white font-bold bg-blue-600 border border border-blue-500 rounded mx-2">
+                            ${l.consumption} <span class="text-xs text-blue-100">L/100</span>
+                        </td>
+                        <td class="text-right">
+                             <button onclick="openModal('fuel', 'edit', ${l.id})" class="hover:bg-gray-100 border border-gray-300 rounded bg-white p-1">✏️</button>
+                             <button onclick="deleteFuelLog(${l.id})" class="ml-2 hover:bg-red-50 border border-gray-300 rounded bg-white p-1">✕</button>
+                        </td>
+                    </tr>`;
+            });
+            
+            let avgText = '--';
+            if (logsAsc.length > 1) {
+                const startKm = logsAsc[0].mileage;
+                const endKm = logsAsc[logsAsc.length - 1].mileage;
+                const distance = endKm - startKm;
+
+                let totalConsumedLiters = 0;
+                for (let i = 1; i < logsAsc.length; i++) {
+                    totalConsumedLiters += logsAsc[i].liters;
+                }
+
+                if (distance > 0) {
+                    const globalAvg = (totalConsumedLiters / distance) * 100;
+                    avgText = globalAvg.toFixed(1) + ' L/100';
+                }
+            }
+            document.getElementById('fuel-avg-conso').innerText = avgText;
+            document.getElementById('fuel-total-cost').innerText = totalCost.toFixed(2) + ' DH';
+        }
+
+        function renderMaintenanceTable() {
+             const tbody = document.getElementById('maintenance-table-body');
+             const term = document.getElementById('maint-search-input')?.value.toLowerCase() || '';
+            tbody.innerHTML = '';
+            const logs = maintenanceLogs.filter(l => l.vehicleId === currentMaintVehicleId)
+                .filter(l => l.type.toLowerCase().includes(term) || l.date.includes(term) || l.mileage.toString().includes(term))
+                .sort((a,b) => new Date(b.date) - new Date(a.date));
+            let totalCost = 0;
+            
+            logs.forEach(l => {
+                totalCost += l.cost;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono text-sm text-gray-600">${formatDate(l.date)}</td>
+                        <td class="text-gray-900 font-bold">${l.type}</td>
+                        <td class="text-gray-900 font-bold">${l.mileage} km</td>
+                        <td class="text-gray-500">${l.type==='Vidange' ? (l.mileage + l.interval) + ' km' : '-'}</td>
+                        <td class="text-gray-900 font-bold">${l.cost} DH</td>
+                        <td class="text-right flex justify-end gap-2">
+                             <button onclick="openModal('maintenance', 'edit', ${l.id})" class="hover:bg-gray-100 border border-gray-300 rounded bg-white p-1">✏️</button>
+                             <button onclick="deleteMaintenanceLog(${l.id})" class="hover:bg-red-50 border border-gray-300 rounded bg-white p-1">✕</button>
+                        </td>
+                    </tr>`;
+            });
+            document.getElementById('maint-total-cost').innerText = totalCost.toFixed(2) + ' DH';
+        }
+
+        // --- NOUVELLE FONCTION D'AFFICHAGE DE L'HISTORIQUE (AVEC DURÉE) ---
+        function getDuration(startStr, endStr) {
+            if(!startStr) return "-";
+            const start = new Date(startStr);
+            const end = endStr ? new Date(endStr) : new Date(); // Si pas de fin, c'est "aujourd'hui"
+            
+            // Cas où la fin est avant le début (erreur de date)
+            if (end < start) return "Erreur Date";
+
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (endStr) {
+                return `${diffDays} jours`;
+            } else {
+                return `En cours (${diffDays} j)`;
+            }
+        }
+
+        function renderAssignmentsTable() {
+            const term = document.getElementById('assign-search-input')?.value.toLowerCase() || '';
+            const tbody = document.getElementById('assignments-table-body');
+            tbody.innerHTML = '';
+            
+            const logs = assignmentHistory
+                .filter(h => (currentAssignmentView.type==='vehicle' ? h.vehicleId===currentAssignmentView.id : h.userId===currentAssignmentView.id))
+                .filter(h => {
+                    const v = vehicles.find(x => x.id === h.vehicleId);
+                    const u = users.find(x => x.id === h.userId);
+                    const vName = v ? (v.brand + ' ' + v.model).toLowerCase() : '';
+                    const uName = u ? u.name.toLowerCase() : '';
+                    return vName.includes(term) || uName.includes(term);
+                });
+            
+            logs.sort((a,b) => new Date(b.startDate) - new Date(a.startDate)).forEach(l => {
+                const v = vehicles.find(x => x.id === l.vehicleId);
+                const u = users.find(x => x.id === l.userId);
+                const duration = getDuration(l.startDate, l.endDate);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono text-sm text-gray-600">${formatDate(l.startDate)}</td>
+                        <td class="font-mono text-sm text-gray-600">${l.endDate ? formatDate(l.endDate) : '<span class="font-bold text-blue-700">En cours</span>'}</td>
+                        <td class="font-bold text-gray-900 bg-gray-100 rounded px-2 text-center">${duration}</td>
+                        <td class="text-gray-900 font-bold">${v ? v.brand+' '+v.model : '?'}</td>
+                        <td class="text-gray-600">${u ? u.name : '?'}</td>
+                        <td><span class="px-2 py-1 rounded text-sm font-bold uppercase border border border-gray-300 ${l.endDate?'bg-white text-gray-600':'bg-blue-100 text-blue-700'}">${l.endDate?'Terminé':'Actif'}</span></td>
+                        <td class="text-right">
+                             <button onclick="deleteAssignment(${l.id})" class="p-1 hover:bg-red-50 transition-colors border border-gray-300 rounded bg-white" title="Supprimer l'affectation">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                'available': { c: 'bg-green-50 text-green-700 border border border-green-200', t: 'Disponible' },
+                'in-use': { c: 'bg-blue-50 text-blue-700 border border border-blue-200', t: 'En Service' },
+                'maintenance': { c: 'bg-orange-50 text-orange-700 border border border-orange-200', t: 'Atelier' },
+                'out': { c: 'bg-gray-100 text-gray-600 border border border-gray-300', t: 'Hors Service' }
+            };
+            const s = map[status] || map['out'];
+            return `<span class="badge ${s.c}">${s.t}</span>`;
+        }
+
+        function formatDate(str) {
+            if(!str) return '-';
+            const d = new Date(str);
+            return d.toLocaleDateString('fr-FR');
+        }
+
+        // CRUD Handlers
+        function openModal(type, mode, id = null) {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.remove('opacity-0'); }, 10);
+            
+            ['vehicle', 'user', 'fuel', 'maintenance', 'document', 'situation'].forEach(t => {
+                document.getElementById('modal-' + t).classList.add('hidden');
+                document.getElementById('modal-' + t).classList.remove('open');
+            });
+
+            const modal = document.getElementById('modal-' + type);
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.add('open'); }, 50);
+
+            if (type === 'vehicle') populateUserSelect();
+            if (type === 'document') populateVehicleSelectInDocModal();
+            
+            const form = document.getElementById(type + '-form');
+            if(type !== 'situation') form.reset();
+            
+            if(type === 'vehicle') {
+                document.getElementById('finance-section').classList.add('hidden');
+                // Reset image preview
+                const imgPrev = document.getElementById('preview-vehicle-image');
+                imgPrev.style.display = 'none';
+                imgPrev.src = '';
+            }
+
+            if (mode === 'edit' && id) {
+                if (type === 'vehicle') {
+                    const v = vehicles.find(x => x.id === id);
+                    document.getElementById('vehicle-id').value = v.id;
+                    document.getElementById('input-brand').value = v.brand;
+                    document.getElementById('input-model').value = v.model;
+                    document.getElementById('input-plate').value = v.plate;
+                    document.getElementById('input-fuel').value = v.fuel;
+                    document.getElementById('input-mileage').value = v.mileage;
+                    document.getElementById('input-status').value = v.status;
+                    document.getElementById('input-registration-date').value = v.registrationDate;
+                    
+                    document.getElementById('input-user-id').value = v.userId || '';
+                    
+                    document.getElementById('input-option').value = v.option || '';
+                    handleFinanceOptionChange();
+                    if(v.option) {
+                        document.getElementById('input-finance-amount').value = v.financeAmount;
+                        document.getElementById('input-finance-start').value = v.financeStartDate || '';
+                        document.getElementById('input-finance-end').value = v.financeEndDate || '';
+                    }
+
+                    // GESTION IMAGE EN MODE EDITION
+                    if(v.image) {
+                        imgPrev.src = v.image;
+                        imgPrev.style.display = 'block';
+                    }
+
+                    handleUserSelectChange();
+                    if(v.assignmentDate) document.getElementById('input-assignment-date').value = v.assignmentDate;
+                } else if (type === 'user') {
+                    const u = users.find(x => x.id === id);
+                    document.getElementById('user-id').value = u.id;
+                    document.getElementById('input-user-name').value = u.name;
+                    document.getElementById('input-user-role').value = u.role;
+                    document.getElementById('input-user-status').value = u.status;
+                    document.getElementById('input-user-salary').value = u.salary || '';
+                    document.getElementById('input-user-days').value = u.daysInMonth || 30;
+                } else if (type === 'fuel') {
+                    const l = fuelLogs.find(x => x.id === id);
+                    document.getElementById('fuel-log-id').value = l.id;
+                    document.getElementById('fuel-vehicle-id').value = l.vehicleId; 
+                    document.getElementById('fuel-date').value = l.date;
+                    document.getElementById('fuel-mileage').value = l.mileage;
+                    document.getElementById('fuel-liters').value = l.liters;
+                    document.getElementById('fuel-cost').value = l.cost;
+                } else if (type === 'document') { 
+                    const d = documents.find(x => x.id === id);
+                    document.getElementById('doc-id').value = d.id;
+                    document.getElementById('doc-vehicle-select').value = d.vehicleId;
+                    document.getElementById('doc-name').value = d.name;
+                    document.getElementById('doc-start').value = d.startDate;
+                    document.getElementById('doc-end').value = d.endDate;
+                    document.getElementById('doc-cost').value = d.cost;
+                } else if (type === 'maintenance') {
+                    const l = maintenanceLogs.find(x => x.id === id);
+                    document.getElementById('maint-log-id').value = l.id;
+                    document.getElementById('maint-vehicle-id').value = l.vehicleId;
+                    document.getElementById('maint-date').value = l.date;
+                    document.getElementById('maint-type').value = l.type;
+                    document.getElementById('maint-mileage').value = l.mileage;
+                    document.getElementById('maint-cost').value = l.cost;
+                    if(l.type === 'Vidange') {
+                        document.getElementById('maint-oil-type').value = l.oilType;
+                        document.getElementById('maint-interval').value = l.interval;
+                    }
+                    toggleOilFields();
+                }
+            } else {
+                if (type === 'vehicle') {
+                    document.getElementById('input-registration-date').valueAsDate = new Date();
+                    document.getElementById('vehicle-id').value = '';
+                    document.getElementById('input-mileage').value = 0; 
+                }
+                if (type === 'fuel') {
+                    document.getElementById('fuel-vehicle-id').value = currentFuelVehicleId;
+                    document.getElementById('fuel-date').valueAsDate = new Date();
+                    const last = getLastMileage(currentFuelVehicleId, 'fuel');
+                    document.getElementById('fuel-mileage').value = last + 100;
+                    document.getElementById('fuel-hint').innerText = "Dernier relevé: " + last;
+                    document.getElementById('fuel-log-id').value = '';
+                }
+                if (type === 'maintenance') {
+                    document.getElementById('maint-vehicle-id').value = currentMaintVehicleId;
+                    document.getElementById('maint-date').valueAsDate = new Date();
+                    const last = getLastMileage(currentMaintVehicleId, 'maintenance');
+                    document.getElementById('maint-mileage').value = last;
+                    document.getElementById('maint-hint').innerText = "Dernier relevé: " + last;
+                    document.getElementById('maint-log-id').value = '';
+                    toggleOilFields();
+                }
+                if (type === 'document') {
+                    document.getElementById('doc-id').value = '';
+                }
+                if (type === 'user') {
+                    document.getElementById('user-id').value = '';
+                    document.getElementById('input-user-days').value = 30; 
+                }
+                if(type === 'situation') {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 1);
+                    const end = new Date(now.getFullYear(),11, 31);
+                    document.getElementById('sit-start-date').value = start.toISOString().split('T')[0];
+                    document.getElementById('sit-end-date').value = end.toISOString().split('T')[0];
+                }
+            }
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                 ['vehicle', 'user', 'fuel', 'maintenance', 'document', 'situation'].forEach(t => {
+                    const m = document.getElementById('modal-' + t);
+                    m.classList.remove('open');
+                });
+            }, 300);
+        }
+
+        // --- LOGIQUE AMÉLIORÉE DE SOUMISSION VÉHICULE ---
+        function handleVehicleSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('vehicle-id').value;
+            const optionVal = document.getElementById('input-option').value;
+            
+            // LOGIQUE IMAGE: Si un fichier est sélectionné, on prend le Base64 du preview. Sinon, on garde l'ancien (edit) ou null (new).
+            const imgPreviewSrc = document.getElementById('preview-vehicle-image').src;
+            const hasNewImage = document.getElementById('input-vehicle-image').files.length > 0;
+            const finalImage = hasNewImage ? imgPreviewSrc : (idVal ? vehicles.find(v=>v.id==idVal).image : null);
+            
+            const newV = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                brand: document.getElementById('input-brand').value,
+                model: document.getElementById('input-model').value,
+                plate: document.getElementById('input-plate').value,
+                registrationDate: document.getElementById('input-registration-date').value,
+                fuel: document.getElementById('input-fuel').value,
+                mileage: parseInt(document.getElementById('input-mileage').value),
+                status: document.getElementById('input-status').value,
+                userId: document.getElementById('input-user-id').value ? parseInt(document.getElementById('input-user-id').value) : null,
+                assignmentDate: document.getElementById('input-user-id').value ? document.getElementById('input-assignment-date').value : null,
+                option: optionVal,
+                financeAmount: optionVal ? parseFloat(document.getElementById('input-finance-amount').value) : 0,
+                financeStartDate: optionVal ? document.getElementById('input-finance-start').value : null,
+                financeEndDate: optionVal ? document.getElementById('input-finance-end').value : null,
+                image: finalImage // NOUVEAU CHAMP
+            };
+
+            // Gestion des Affectations (Historique)
+            if (idVal) {
+                // Cas EDIT : Vérifier si l'utilisateur ou la date d'affectation a changé
+                const oldV = vehicles.find(v => v.id == idVal);
+                
+                const userChanged = oldV.userId !== newV.userId;
+                const dateChanged = oldV.assignmentDate !== newV.assignmentDate;
+
+                // Si on assigne une personne ou que la date change
+                if (newV.userId && (userChanged || dateChanged)) {
+                    // 1. Fermer l'ancienne affectation active pour ce véhicule
+                    const activeAssign = assignmentHistory.find(a => a.vehicleId == idVal && !a.endDate);
+                    if (activeAssign) {
+                        // On fixe la fin à la veille de la nouvelle affectation (ou même jour selon logique)
+                        // Pour simplifier, on fixe la fin à la nouvelle date de début
+                        activeAssign.endDate = new Date(newV.assignmentDate || new Date()).toISOString().split('T')[0];
+                    }
+
+                    // 2. Créer la nouvelle affectation
+                    assignmentHistory.push({
+                        id: Date.now(),
+                        vehicleId: newV.id,
+                        userId: newV.userId,
+                        startDate: newV.assignmentDate || new Date().toISOString().split('T')[0],
+                        endDate: null // Active
+                    });
+                } 
+                // Si on désassigne la personne (champ vide)
+                else if (!newV.userId && oldV.userId) {
+                    const activeAssign = assignmentHistory.find(a => a.vehicleId == idVal && !a.endDate);
+                    if (activeAssign) {
+                        activeAssign.endDate = new Date().toISOString().split('T')[0];
+                    }
+                }
+
+                const idx = vehicles.findIndex(v => v.id == idVal);
+                vehicles[idx] = newV;
+                showToast('Véhicule Modifié');
+
+            } else {
+                // Cas CREATE
+                vehicles.push(newV);
+                // Si un utilisateur est choisi dès la création
+                if(newV.userId) {
+                    assignmentHistory.push({
+                        id: Date.now(), 
+                        vehicleId: newV.id, 
+                        userId: newV.userId,
+                        startDate: newV.assignmentDate || new Date().toISOString().split('T')[0], 
+                        endDate: null
+                    });
+                }
+                showToast('Véhicule Ajouté');
+            }
+            saveAllData();
+            closeModal();
+            renderVehicles();
+            renderDashboard();
+        }
+
+        function handleUserSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('user-id').value;
+            const newU = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                name: document.getElementById('input-user-name').value,
+                role: document.getElementById('input-user-role').value,
+                status: document.getElementById('input-user-status').value,
+                salary: parseFloat(document.getElementById('input-user-salary').value) || 0,
+                daysInMonth: parseInt(document.getElementById('input-user-days').value) || 30
+            };
+            if (idVal) {
+                const idx = users.findIndex(u => u.id == idVal);
+                users[idx] = newU;
+                showToast('Utilisateur Modifié');
+            } else {
+                users.push(newU);
+                showToast('Utilisateur Ajouté');
+            }
+            saveAllData();
+            closeModal();
+            renderUsers();
+            renderDashboard();
+        }
+
+        function handleFuelSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('fuel-log-id').value;
+            const newL = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                vehicleId: parseInt(document.getElementById('fuel-vehicle-id').value),
+                date: document.getElementById('fuel-date').value,
+                mileage: parseInt(document.getElementById('fuel-mileage').value),
+                liters: parseFloat(document.getElementById('fuel-liters').value),
+                cost: parseFloat(document.getElementById('fuel-cost').value)
+            };
+            if (idVal) {
+                const idx = fuelLogs.findIndex(l => l.id == idVal);
+                fuelLogs[idx] = newL;
+            } else {
+                fuelLogs.push(newL);
+            }
+            updateVehicleMileage(newL.vehicleId, newL.mileage);
+            saveAllData();
+            closeModal();
+            renderFuelTable();
+            renderVehicles();
+            showToast('Plein enregistré');
+        }
+
+        function handleMaintenanceSubmit(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('maint-log-id').value;
+            const newL = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                vehicleId: parseInt(document.getElementById('maint-vehicle-id').value),
+                date: document.getElementById('maint-date').value,
+                type: document.getElementById('maint-type').value,
+                mileage: parseInt(document.getElementById('maint-mileage').value),
+                cost: parseFloat(document.getElementById('maint-cost').value)
+            };
+            if(newL.type === 'Vidange') {
+                newL.oilType = document.getElementById('maint-oil-type').value;
+                newL.interval = parseInt(document.getElementById('maint-interval').value);
+            }
+            if (idVal) {
+                const idx = maintenanceLogs.findIndex(l => l.id == idVal);
+                maintenanceLogs[idx] = newL;
+                showToast('Intervention Modifiée');
+            } else {
+                maintenanceLogs.push(newL);
+                showToast('Intervention enregistrée');
+            }
+            updateVehicleMileage(newL.vehicleId, newL.mileage);
+            saveAllData();
+            closeModal();
+            renderMaintenanceTable();
+            renderVehicles();
+        }
+
+        function handleDocumentSubmit(e) {
+             e.preventDefault();
+             const idVal = document.getElementById('doc-id').value;
+             const newD = {
+                 id: idVal ? parseInt(idVal) : Date.now(),
+                 vehicleId: parseInt(document.getElementById('doc-vehicle-select').value),
+                 name: document.getElementById('doc-name').value,
+                 startDate: document.getElementById('doc-start').value,
+                 endDate: document.getElementById('doc-end').value,
+                 cost: parseFloat(document.getElementById('doc-cost').value)
+             };
+             if(idVal) {
+                 const idx = documents.findIndex(d => d.id == idVal);
+                 documents[idx] = newD;
+             } else {
+                 documents.push(newD);
+             }
+             saveAllData();
+             closeModal();
+             renderDocuments();
+             showToast('Document enregistré');
+        }
+
+        // Delete Logic
+        function deleteVehicle(id) {
+            if(confirm('CONFIRMER SUPPRESSION ?')) {
+                vehicles = vehicles.filter(v => v.id !== id);
+                saveAllData();
+                renderVehicles(); renderDashboard(); showToast('Véhicule supprimé', 'error');
+            }
+        }
+        function deleteUser(id) {
+            if(confirm('CONFIRMER SUPPRESSION ?')) {
+                if(vehicles.some(v => v.userId === id)) { alert('IMPOSSIBLE: UTILISATEUR AFFECTÉ'); return; }
+                users = users.filter(u => u.id !== id);
+                saveAllData();
+                renderUsers(); renderDashboard(); showToast('Utilisateur supprimé', 'error');
+            }
+        }
+        function deleteFuelLog(id) {
+            fuelLogs = fuelLogs.filter(l => l.id !== id);
+            saveAllData();
+            renderFuelTable(); renderVehicles();
+        }
+        function deleteMaintenanceLog(id) {
+            maintenanceLogs = maintenanceLogs.filter(l => l.id !== id);
+            saveAllData();
+            renderMaintenanceTable(); renderVehicles();
+        }
+        function deleteDocument(id) {
+            documents = documents.filter(d => d.id !== id);
+            saveAllData();
+            renderDocuments();
+        }
+        // NOUVEAU : SUPPRESSION AFFECTATION
+        function deleteAssignment(id) {
+            const assign = assignmentHistory.find(a => a.id === id);
+            if(!assign) return;
+            
+            if(!confirm("SUPPRIMER CETTE AFFECTATION ?")) return;
+
+            // Cas 1 : Suppression de l'historique passée (fermée)
+            if (assign.endDate) {
+                assignmentHistory = assignmentHistory.filter(a => a.id !== id);
+                showToast('Affectation supprimée (Historique)');
+            } 
+            // Cas 2 : Suppression de l'affectation en cours
+            else {
+                const v = vehicles.find(v => v.id === assign.vehicleId);
+                if(v) {
+                    v.userId = null;
+                    v.status = 'available'; // Libérer le véhicule
+                    v.assignmentDate = null;
+                    // Garder l'historique ? Non, on supprime l'enregistrement de l'historique aussi
+                }
+                assignmentHistory = assignmentHistory.filter(a => a.id !== id);
+                
+                showToast('Affectation annulée (Véhicule libéré)', 'success');
+                renderAssignmentsTable();
+                renderVehicles(); // Mettre à jour la liste principale
+                renderDashboard(); // Met à jour le dashboard
+            }
+            saveAllData();
+        }
+
+        // View Helpers
+        function openFuelHistory(id) {
+            currentFuelVehicleId = id;
+            const v = vehicles.find(x => x.id === id);
+            document.getElementById('fuel-vehicle-title').innerText = v.brand + ' ' + v.model;
+            document.getElementById('fuel-vehicle-plate').innerText = v.plate;
+            const searchInput = document.getElementById('fuel-search-input');
+            if(searchInput) searchInput.value = '';
+            switchView('fuel');
+        }
+        function openMaintenanceHistory(id) {
+            currentMaintVehicleId = id;
+            const v = vehicles.find(x => x.id === id);
+            document.getElementById('maint-vehicle-title').innerText = v.brand + ' ' + v.model;
+            document.getElementById('maint-vehicle-plate').innerText = v.plate;
+            const searchInput = document.getElementById('maint-search-input');
+            if(searchInput) searchInput.value = '';
+            switchView('maintenance');
+        }
+        function openAssignmentHistory(type, id) {
+            currentAssignmentView = { type, id };
+            const t = document.getElementById('assignment-title');
+            const s = document.getElementById('assignment-subtitle');
+            
+            if(type === 'vehicle') {
+                const v = vehicles.find(x => x.id === id);
+                t.innerText = v.brand + ' ' + v.model;
+                s.innerText = 'HISTORIQUE AFFECTATIONS';
+            } else {
+                const u = users.find(x => x.id === id);
+                t.innerText = u.name;
+                s.innerText = 'HISTORIQUE CONDUITE';
+            }
+
+            const searchInput = document.getElementById('assign-search-input');
+            if(searchInput) searchInput.value = '';
+            
+            renderAssignmentsTable();
+            switchView('assignments');
+        }
+
+        // Utilities
+        function populateUserSelect() {
+            const s = document.getElementById('input-user-id');
+            const curr = s.value;
+            s.innerHTML = '<option value="">-- Aucune affectation --</option>';
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = u.name + ' (' + u.role + ')';
+                s.appendChild(opt);
+            });
+            s.value = curr;
+        }
+        
+        function populateVehicleSelectInDocModal() {
+            const s = document.getElementById('doc-vehicle-select');
+            s.innerHTML = '';
+            vehicles.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.innerText = v.plate + ' - ' + v.brand + ' ' + v.model;
+                s.appendChild(opt);
+            });
+        }
+
+        function handleUserSelectChange() {
+             const v = document.getElementById('input-user-id').value;
+             const d = document.getElementById('assignment-date-group');
+             if(v) {
+                 d.classList.remove('hidden');
+                 document.getElementById('input-assignment-date').valueAsDate = new Date();
+             } else {
+                 d.classList.add('hidden');
+             }
+        }
+
+        function handleFinanceOptionChange() {
+            const val = document.getElementById('input-option').value;
+            const section = document.getElementById('finance-section');
+            const label = document.getElementById('label-finance-amount');
+            
+            if(val === 'Patrimoine' || val === 'Location') {
+                section.classList.remove('hidden');
+                if(val === 'Patrimoine') {
+                    label.innerText = 'Montant Traite Mensuelle (DH)';
+                } else {
+                    label.innerText = 'Montant Mensualité (DH)';
+                }
+            } else {
+                section.classList.add('hidden');
+                document.getElementById('input-finance-amount').value = '';
+                document.getElementById('input-finance-start').value = '';
+                document.getElementById('input-finance-end').value = '';
+            }
+        }
+
+        function toggleOilFields() {
+             const t = document.getElementById('maint-type').value;
+             const f = document.getElementById('oil-fields');
+             if(t === 'Vidange') f.classList.remove('hidden');
+             else f.classList.add('hidden');
+        }
+
+        function getLastMileage(vid, type) {
+            const logs = type === 'fuel' ? fuelLogs : maintenanceLogs;
+            const vlogs = logs.filter(l => l.vehicleId === vid);
+            if(vlogs.length === 0) return vehicles.find(v => v.id === vid).mileage;
+            return Math.max(...vlogs.map(l => l.mileage));
+        }
+
+        function updateVehicleMileage(vid, km) {
+            const v = vehicles.find(x => x.id === vid);
+            if(km > v.mileage) v.mileage = km;
+            saveAllData();
+        }
+
+        function showToast(msg, type='success') {
+            const overlay = document.querySelector('body');
+            const div = document.createElement('div');
+            div.className = `fixed bottom-4 right-4 px-6 py-4 rounded shadow-lg text-white font-bold z-50 ${type==='error'?'bg-red-600':'bg-gray-800'}`;
+            div.innerText = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function setFilter(f, btn) {
+            currentFilter = f;
+            document.querySelectorAll('#view-vehicles button').forEach(b => {
+                b.classList.remove('badge-active');
+                b.classList.add('badge-inactive');
+            });
+            btn.classList.remove('badge-inactive');
+            btn.classList.add('badge-active');
+            renderVehicles();
+        }
+
+        function setDocFilter(f, btn) {
+            currentDocFilter = f;
+            document.querySelectorAll('#view-documents button').forEach(b => {
+                b.classList.remove('badge-active');
+                b.classList.add('badge-inactive');
+            });
+            btn.classList.remove('badge-inactive');
+            btn.classList.add('badge-active');
+            renderDocuments();
+        }
+
+        function goBackToSource() {
+            if(currentAssignmentView.type === 'vehicle') switchView('vehicles');
+            else switchView('users');
+        }
+
+        // --- SITUATION LOGIC (Personnel + Finance Prorata) ---
+        function openSituationModal() {
+            const overlay = document.getElementById('modal-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.remove('opacity-0'); }, 10);
+            
+            ['vehicle', 'user', 'fuel', 'maintenance', 'document', 'situation'].forEach(t => {
+                document.getElementById('modal-' + t).classList.add('hidden');
+                document.getElementById('modal-' + t).classList.remove('open');
+            });
+
+            const modal = document.getElementById('modal-situation');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.add('open'); }, 50);
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const start = new Date(year, 0, 1).toISOString().split('T')[0];
+            const end = new Date(year,11, 31).toISOString().split('T')[0];
+
+            document.getElementById('sit-start-date').value = start;
+            document.getElementById('sit-end-date').value = end;
+
+            const filterSelect = document.getElementById('sit-vehicle-filter');
+            filterSelect.innerHTML = '<option value="all">TOUS LES VÉHICULES</option>';
+            vehicles.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.innerText = `${v.plate} - ${v.brand} ${v.model}`;
+                filterSelect.appendChild(opt);
+            });
+            filterSelect.value = 'all';
+        }
+
+        function handleSituationSubmit(e) {
+            e.preventDefault();
+            const start = new Date(document.getElementById('sit-start-date').value);
+            const end = new Date(document.getElementById('sit-end-date').value);
+            const filterId = document.getElementById('sit-vehicle-filter').value;
+            
+            // MISE A JOUR DU TITRE IMPRESSION
+            const startStr = start.toLocaleDateString('fr-FR');
+            const endStr = end.toLocaleDateString('fr-FR');
+            document.getElementById('print-title').innerText = `Situation des Charges Du: ${startStr} Au: ${endStr}`;
+            
+            const vehiclesToProcess = filterId === 'all' ? vehicles : vehicles.filter(v => v.id == filterId);
+
+            const tbody = document.getElementById('situation-table-body');
+            tbody.innerHTML = '';
+            let grandTotal =0;
+
+            vehiclesToProcess.forEach(v => {
+                // 1. Maintenance Costs
+                const maintCost = maintenanceLogs
+                    .filter(l => l.vehicleId === v.id && l.date >= start.toISOString().split('T')[0] && l.date <= end.toISOString().split('T')[0])
+                    .reduce((sum, l) => sum + l.cost, 0);
+
+                // 2. Fuel Costs
+                const fuelCost = fuelLogs
+                    .filter(l => l.vehicleId === v.id && l.date >= start.toISOString().split('T')[0] && l.date <= end.toISOString().split('T')[0])
+                    .reduce((sum, l) => sum + l.cost, 0);
+
+                // 3. Document Costs (PRORATA LOGIC)
+                const docCost = documents
+                    .filter(d => d.vehicleId === v.id)
+                    .reduce((sum, d) => {
+                        const dStart = new Date(d.startDate);
+                        const dEnd = new Date(d.endDate);
+                        
+                        const totalDuration = (dEnd - dStart) / (1000 * 60 * 60 * 24);
+                        if (totalDuration <= 0) return sum;
+
+                        const oStart = Math.max(start.getTime(), dStart.getTime());
+                        const oEnd = Math.min(end.getTime(), dEnd.getTime());
+                        const overlapDuration = (oEnd - oStart) / (1000 * 60 * 60 * 24);
+
+                        if (overlapDuration > 0) {
+                            const ratio = overlapDuration / totalDuration;
+                            return sum + (d.cost * ratio);
+                        }
+                        
+                        return sum;
+                    }, 0);
+
+                // 4. Personnel Costs (LOGIQUE STRICTE PRORATA)
+                let personnelCost = 0;
+                
+                const relevantAssignments = assignmentHistory.filter(h => {
+                    if (h.vehicleId !== v.id) return false;
+                    const hStart = new Date(h.startDate);
+                    const hEnd = h.endDate ? new Date(h.endDate) : new Date("2099-12-31"); 
+                    
+                    return hStart <= end && hEnd >= start;
+                });
+
+                relevantAssignments.forEach(h => {
+                    const u = users.find(u => u.id === h.userId);
+                    if (!u) return;
+
+                    const salaireMensuel = u.salary;
+                    const nombreJoursMois = u.daysInMonth || 30; 
+                    const tauxJournalier = nombreJoursMois > 0 ? (salaireMensuel / nombreJoursMois) : 0;
+
+                    const aStart = new Date(h.startDate);
+                    const aEnd = h.endDate ? new Date(h.endDate) : new Date("2099-12-31");
+
+                    const overlapStart = new Date(Math.max(start.getTime(), aStart.getTime()));
+                    const overlapEnd = new Date(Math.min(end.getTime(), aEnd.getTime()));
+
+                    if (overlapStart <= overlapEnd) {
+                        const diffMs = overlapEnd - overlapStart;
+                        const nombreJoursPeriode = Math.ceil(diffMs / (1000 * 3600 * 24));
+                        
+                        personnelCost += tauxJournalier * nombreJoursPeriode;
+                    }
+                });
+
+                // 5. Finance Costs (LOGIQUE FINANCE PRORATA)
+                let financeCost = 0;
+
+                if (v.option === 'Patrimoine' || v.option === 'Location') {
+                    if (v.financeStartDate && v.financeEndDate && v.financeAmount > 0) {
+                        const fStart = new Date(v.financeStartDate);
+                        const fEnd = new Date(v.financeEndDate);
+
+                        const oStart = new Date(Math.max(start.getTime(), fStart.getTime()));
+                        const oEnd = new Date(Math.min(end.getTime(), fEnd.getTime()));
+
+                        if (oStart <= oEnd) {
+                            const diffMs = oEnd - oStart;
+                            const overlapDays = Math.ceil(diffMs / (1000 * 3600 * 24));
+
+                            const dailyFinanceRate = v.financeAmount / 30;
+                            financeCost = dailyFinanceRate * overlapDays;
+                        }
+                    }
+                }
+
+                const total = maintCost + fuelCost + docCost + personnelCost + financeCost;
+                grandTotal += total;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="text-left text-gray-900 font-bold">${v.plate} <br><span class="text-xs text-gray-500">${v.brand} ${v.model}</span></td>
+                        <td class="text-right font-mono font-bold text-gray-700">${maintCost.toFixed(2)} DH</td>
+                        <td class="text-right font-mono font-bold text-gray-700">${fuelCost.toFixed(2)} DH</td>
+                        <td class="text-right font-mono font-bold text-blue-700 bg-blue-50 border border border-blue-100 rounded mx-2">${personnelCost > 0 ? personnelCost.toFixed(2) + ' DH' : '-'}</td>
+                        <td class="text-right font-mono font-bold text-gray-700 bg-gray-50 border border-gray-200 rounded mx-2">${docCost.toFixed(2)} DH</td>
+                        <td class="text-right font-mono font-bold text-purple-700 bg-purple-50 border border-purple-100 rounded mx-2">${financeCost > 0 ? financeCost.toFixed(2) + ' DH' : '-'}</td>
+                        <td class="text-right font-mono font-bold text-green-700 bg-green-50 border border-green-100">${total.toFixed(2)} DH</td>
+                    </tr>`;
+            });
+
+            document.getElementById('sit-grand-total').innerText = grandTotal.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' DH';
+        }
+    </script>
+</body>
+</html>
