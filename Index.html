@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire d'Inscription - Charki Site</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #667eea;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
+        }
+        
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .checkbox-group label,
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        input[type="checkbox"],
+        input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Formulaire d'Inscription</h1>
+            <p>Veuillez remplir le formulaire ci-dessous</p>
+        </div>
+        
+        <hr>
+        
+        <form method="POST" action="traiter_inscription.php">
+            <!-- Nom et Prénom -->
+            <div class="form-group">
+                <label for="nom">Votre Nom et Prénom <span class="required">*</span></label>
+                <input type="text" id="nom" name="nom" required placeholder="Ex: Jean Dupont">
+            </div>
+            
+            <!-- Langue -->
+            <div class="form-group">
+                <label>Quelle est votre Langue? <span class="required">*</span></label>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" name="langue" value="Anglais"> Anglais
+                    </label>
+                    <label>
+                        <input type="checkbox" name="langue" value="Français"> Français
+                    </label>
+                    <label>
+                        <input type="checkbox" name="langue" value="Autre"> Autre
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Sexe et Continent -->
+            <div class="form-row">
+                <!-- Sexe -->
+                <div class="form-group">
+                    <label>Votre Sexe <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="sexe" value="Homme" required> Homme
+                        </label>
+                        <label>
+                            <input type="radio" name="sexe" value="Femme" required> Femme
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Continent -->
+                <div class="form-group">
+                    <label for="continent">Votre Continent <span class="required">*</span></label>
+                    <select id="continent" name="continent" required>
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Afrique">Afrique</option>
+                        <option value="Amérique">Amérique</option>
+                        <option value="Asie">Asie</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Océanie">Océanie</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Impressions -->
+            <div class="form-group">
+                <label for="impressions">Vos Impressions</label>
+                <textarea id="impressions" name="impressions" placeholder="Partagez vos commentaires et impressions..."></textarea>
+            </div>
+            
+            <!-- Bouton Submit -->
+            <button type="submit">S'inscrire</button>
+        </form>
+    </div>
+</body>
+</html>
