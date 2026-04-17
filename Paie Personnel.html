@@ -1,0 +1,2837 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaiePro - Gestion de Paie Offline</title>
+    <style>
+        /* --- RESET & VARIABLES --- */
+        :root {
+            --bg: #f1f5f9;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #ffffff;
+            --fg: #0f172a;
+            --fg-muted: #64748b;
+            --accent: #0f766e; /* Teal 700 */
+            --accent-hover: #0d9488; /* Teal 600 */
+            --accent-secondary: #0369a1; /* Sky 700 */
+            --danger: #dc2626;
+            --warning: #d97706;
+            --sidebar-bg: #1e293b; /* Slate 800 */
+            --sidebar-text: #e2e8f0;
+            --border: #e2e8f0;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+
+        * { box-sizing: border-box; outline: none; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--fg);
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        /* --- UTILITIES (Tailwind-like) --- */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .justify-end { justify-content: flex-end; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .gap-5 { gap: 1.25rem; }
+        
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        
+        .w-4 { width: 1rem; }
+        .w-5 { width: 1.25rem; }
+        .w-9 { width: 2.25rem; }
+        .w-10 { width: 2.5rem; }
+        .w-12 { width: 3rem; }
+        .w-20 { width: 5rem; }
+        .w-24 { width: 6rem; }
+        .w-full { width: 100%; }
+        .h-4 { height: 1rem; }
+        .h-5 { height: 1.25rem; }
+        .h-8 { height: 2rem; }
+        .h-9 { height: 2.25rem; }
+        .h-10 { height: 2.5rem; }
+        .h-screen { height: 100vh; }
+        
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-4 { padding-left: 1rem; padding-right: 1rem; }
+        .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+        .py-12 { padding-top: 3rem; padding-bottom: 3rem; }
+        .py-20 { padding-top: 5rem; padding-bottom: 5rem; }
+        
+        .m-0 { margin: 0; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-5 { margin-bottom: 1.25rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-5 { margin-top: 1.25rem; }
+        
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        
+        .font-bold { font-weight: 700; }
+        .font-semibold { font-weight: 600; }
+        .font-medium { font-weight: 500; }
+        
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .uppercase { text-transform: uppercase; }
+        
+        .hidden { display: none !important; }
+        .block { display: block; }
+        .relative { position: relative; }
+        .fixed { position: fixed; }
+        .absolute { position: absolute; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .z-10 { z-index: 10; }
+        .z-50 { z-index: 50; }
+        .z-[1000] { z-index: 1000; }
+        
+        .bg-white { background-color: var(--bg-tertiary); }
+        .rounded { border-radius: var(--radius); }
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .rounded-full { border-radius: 9999px; }
+        
+        .border { border-width: 1px; border-style: solid; border-color: var(--border); }
+        .border-b { border-bottom: 1px solid var(--border); }
+        .border-t { border-top: 1px solid var(--border); }
+        .border-l { border-left: 1px solid transparent; }
+        
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow-md { box-shadow: var(--shadow-md); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        
+        .overflow-x-auto { overflow-x: auto; }
+        .overflow-y-auto { overflow-y: auto; }
+        
+        .cursor-pointer { cursor: pointer; }
+        .transition { transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 200ms; }
+        
+        /* Custom Colors */
+        .text-accent { color: var(--accent); }
+        .text-accent-sec { color: var(--accent-secondary); }
+        .text-danger { color: var(--danger); }
+        .text-warning { color: var(--warning); }
+        .text-muted { color: var(--fg-muted); }
+        .text-white { color: white; }
+        
+        .bg-accent { background-color: var(--accent); }
+        .bg-accent-light { background-color: rgba(15, 118, 110, 0.1); }
+        .bg-danger-light { background-color: rgba(220, 38, 38, 0.05); }
+        .bg-secondary { background-color: var(--bg-secondary); }
+        .bg-sidebar { background-color: var(--sidebar-bg); }
+        
+        /* Specific Layout Elements */
+        .sidebar {
+            width: 260px;
+            border-right: 1px solid #334155;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 50;
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; }
+            .mobile-menu-btn { display: flex !important; }
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 1.5rem;
+            position: relative;
+            transition: margin-left 0.3s ease;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; padding-left: 24px; }
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(15, 118, 110, 0.2) 0%, transparent 100%);
+            color: #2dd4bf; /* Teal 400 */
+            border-left-color: #2dd4bf;
+        }
+
+        .card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-fullscreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 100;
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 2rem !important;
+            overflow-y: auto;
+            background: var(--bg-tertiary);
+            display: flex !important;
+            flex-direction: column !important;
+            box-shadow: none;
+            border: none;
+        }
+        .card-fullspace-content { flex: 1; overflow-y: auto; min-height: 0; }
+
+        .input-field {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--fg);
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+        .input-field:disabled {
+            background: #eee;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+            padding: 0.625rem 1.25rem; border-radius: var(--radius); font-weight: 500; font-size: 0.875rem;
+            cursor: pointer; border: none; transition: all 0.2s; user-select: none;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-secondary { background: var(--bg-secondary); color: var(--fg); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .btn-danger { background: rgba(220, 38, 38, 0.05); color: var(--danger); border: 1px solid rgba(220, 38, 38, 0.1); }
+        .btn-danger:hover { background: rgba(220, 38, 38, 0.1); }
+        .btn-sm { padding: 0.375rem 0.75rem; font-size: 0.75rem; }
+        .btn-icon { padding: 0.5rem; }
+
+        .table { width: 100%; border-collapse: collapse; }
+        .table th { text-align: left; padding: 0.75rem 0.875rem; background: var(--bg-secondary); color: var(--fg-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        .table td { padding: 0.75rem 0.875rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+        .table tr:last-child td { border-bottom: none; }
+
+        .badge { display: inline-flex; align-items: center; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .badge-success { background: rgba(15, 118, 110, 0.1); color: var(--accent); }
+        .badge-warning { background: rgba(217, 119, 6, 0.1); color: var(--warning); }
+        .badge-info { background: rgba(3, 105, 161, 0.1); color: var(--accent-secondary); }
+
+        .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        .amount { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-weight: 500; }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center;
+            z-index: 1000; padding: 1.25rem;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white; border: 1px solid var(--border); border-radius: var(--radius-lg);
+            width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+            box-shadow: var(--shadow-lg); display: flex; flex-direction: column;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-content.large { max-width: 900px; }
+
+        .progress-bar { height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+
+        .section-view { display: none; animation: fadeIn 0.3s ease; }
+        .section-view.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            background: white; border-left: 4px solid var(--accent);
+            border-radius: var(--radius); padding: 1rem 1.25rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            box-shadow: var(--shadow-lg); transform: translateY(150%); opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* BULLETIN PRINT STYLES (Screen) */
+        .bulletin-sheet { 
+            background: white; 
+            padding: 40px; 
+            color: black; 
+            font-family: sans-serif; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+        }
+        .bulletin-header { border-bottom: 2px solid var(--accent); padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .bulletin-title { font-size: 1.5rem; font-weight: 700; color: var(--accent); text-transform: uppercase; }
+        .bulletin-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .bulletin-info-box h4 { margin: 0 0 5px 0; font-size: 0.8rem; text-transform: uppercase; color: var(--fg-muted); border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .bulletin-info-box p { margin: 2px 0; font-size: 0.9rem; }
+        .bulletin-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .bulletin-table th, .bulletin-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        .bulletin-table th { background: #f8f9fa; font-weight: 600; color: var(--fg); }
+        .bulletin-totals { float: right; width: 300px; }
+        .bulletin-total-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        .bulletin-total-row.final { border-bottom: 2px solid var(--accent); font-weight: 700; font-size: 1.1rem; margin-top: 10px; padding-top: 10px; color: var(--accent); }
+        .bulletin-footer { clear: both; margin-top: 80px; display: flex; justify-content: space-between; padding-top: 20px; border-top: 1px solid #eee; }
+        .signature-box { width: 200px; text-align: center; border-top: 1px dashed #999; padding-top: 10px; font-size: 0.8rem; color: var(--fg-muted); }
+
+        #bulletin-main-container {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+        #bulletin-main-container.is-fullscreen {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 100;
+            background-color: var(--bg); width: 100vw; height: 100vh; padding: 2rem;
+            border-radius: 0; box-shadow: none; overflow-y: auto;
+        }
+
+        /* --- PRINT HEADER (Hidden on screen) --- */
+        .print-header {
+            display: none;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        .print-header h1 { margin: 0; color: var(--accent); text-transform: uppercase; font-size: 24px; }
+        .print-header p { margin: 5px 0 0; color: #666; font-size: 14px; }
+
+        /* --- GLOBAL PRINT STYLES --- */
+        @media print {
+            .sidebar, .mobile-menu-btn, .no-print, header, .nav-item, #main-nav, .section-view:not(.active) {
+                display: none !important;
+            }
+            body { background: white !important; color: black !important; margin: 0 !important; padding: 0 !important; height: auto !important; overflow: visible !important; }
+            .main-content, section { margin: 0 !important; padding: 0 !important; background: white !important; width: 100% !important; max-width: none !important; box-shadow: none !important; border: none !important; }
+
+            body.printing-active #declarations { display: block !important; margin: 0 !important; padding: 0 !important; }
+            body.printing-active #declarations > .card:first-child { display: none !important; }
+            body.printing-active #declarations > .card:nth-child(2) { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            body.printing-active .print-header { display: block !important; position: relative; top: auto; left: auto; width: 100%; z-index: 10; page-break-after: avoid; margin-bottom: 20px; }
+
+            body.printing-bulletin { background: white; overflow: visible; }
+            body.printing-bulletin > * { display: none !important; }
+            body.printing-bulletin #modal-bulletin { display: block !important; position: static; background: white; width: 100%; height: auto; padding: 0; margin: 0; overflow: visible; }
+            body.printing-bulletin #modal-bulletin .modal-content { box-shadow: none; border: none; border-radius: 0; max-width: 100%; max-height: none; overflow: visible; display: block; }
+            body.printing-bulletin #modal-bulletin .no-print { display: none !important; }
+            body.printing-bulletin .bulletin-sheet { padding: 0; box-shadow: none; margin: 0; page-break-inside: avoid; }
+
+            table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            th, td { border: 1px solid #ccc !important; padding: 8px !important; color: black !important; }
+            th { background-color: #f0f0f0 !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .text-muted { color: #555 !important; }
+            .font-bold { font-weight: 700 !important; }
+            .text-accent, .text-accent-sec, .text-danger { color: black !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar bg-sidebar text-white" id="sidebar">
+        <div class="p-5 border-b border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white">PaiePro</h1>
+                    <p class="text-xs text-gray-400">Gestion de Paie</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-b border-gray-700">
+            <label class="text-xs text-gray-400 uppercase tracking-wider mb-2 block">Exercice Fiscal</label>
+            <select id="exercice-select" class="input-field text-sm mb-3" onchange="changeExercice()" style="background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.2); color: white;"></select>
+            <button class="btn btn-sm w-full" onclick="promptNewExercice()" style="background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Nouvel Exercice
+            </button>
+        </div>
+
+        <nav class="py-2" id="main-nav">
+            <div class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Tableau de bord
+            </div>
+            <div class="nav-item" data-section="personnel" onclick="showSection('personnel')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Personnel
+            </div>
+            <div class="nav-item" data-section="prets" onclick="showSection('prets')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0a9 9 0 0118 0z"></path></svg>
+                Prêts & Avances
+            </div>
+            <div class="nav-item" data-section="paie" onclick="showSection('paie')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Saisie Paie
+            </div>
+            <div class="nav-item" data-section="journal-paie" onclick="showSection('journal-paie')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Journal de Paie
+            </div>
+            <div class="nav-item" data-section="cumuls" onclick="showSection('cumuls')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                États Cumulatifs
+            </div>
+            <div class="nav-item" data-section="declarations" onclick="showSection('declarations')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Déclarations
+            </div>
+            <div class="nav-item" data-section="dossiers" onclick="showSection('dossiers')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                Dossiers & Bulletins
+            </div>
+            <div class="nav-item" data-section="parametres" onclick="showSection('parametres')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Paramétrages
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <div id="print-header-container" class="print-header">
+            <h1 id="print-title-text">Titre de l'état</h1>
+            <p id="print-period-text">Période</p>
+        </div>
+
+        <header class="flex items-center justify-between mb-6 no-print">
+            <div class="flex items-center gap-4">
+                <button class="mobile-menu-btn hidden p-2 bg-white border rounded shadow-sm" onclick="toggleSidebar()" aria-label="Menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h2 class="text-2xl font-bold" id="page-title">Tableau de bord</h2>
+            </div>
+            <div class="text-sm text-muted" id="current-date"></div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section-view active">
+            <div class="grid grid-cols-2 grid-cols-4 gap-4 mb-6">
+                <button class="card p-4 text-center hover:border-accent transition cursor-pointer group" onclick="showSection('paie')">
+                    <div class="w-10 h-10 bg-accent-light rounded-lg flex items-center justify-center mx-auto mb-2 text-accent group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <span class="text-sm font-medium">Nouvelle Paie</span>
+                </button>
+                <button class="card p-4 text-center hover:border-accent transition cursor-pointer group" onclick="openModal('modal-employee')">
+                    <div class="w-10 h-10 bg-accent-light rounded-lg flex items-center justify-center mx-auto mb-2 text-accent group-hover:scale-110 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    </div>
+                    <span class="text-sm font-medium">Ajouter Employé</span>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 grid-cols-2 grid-cols-4 gap-5">
+                <div class="card relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm text-muted">Effectif Total</span>
+                        <div class="w-9 h-9 rounded-lg bg-accent-light flex items-center justify-center">
+                            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold mb-1" id="dash-total-emp">0</div>
+                    <p class="text-sm text-muted">Perm: <span id="dash-perm">0</span> | Temp: <span id="dash-temp">0</span></p>
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-accent"></div>
+                </div>
+
+                <div class="card relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm text-muted">Masse Salariale</span>
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0a9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-accent mb-1" id="dash-masse">0,00 DH</div>
+                    <p class="text-sm text-muted">Cumul de l'exercice</p>
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+                </div>
+
+                <div class="card relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm text-muted">Prêts Actifs</span>
+                        <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="text-3xl font-bold mb-1" id="dash-active-loans">0</div>
+                    <p class="text-sm text-muted">En cours de remboursement</p>
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-orange-500"></div>
+                </div>
+
+                <div class="card relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm text-muted">Dernière Paie</span>
+                        <div class="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="text-xl font-bold mb-1" id="dash-last-date">-</div>
+                    <p class="text-sm text-muted" id="dash-last-net">-</p>
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-purple-600"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Personnel Section -->
+        <section id="personnel" class="section-view">
+            <div class="card">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-lg font-semibold">Liste du Personnel</h3>
+                    <button class="btn btn-primary" onclick="openModal('modal-employee')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Nouvel Employé
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mat.</th>
+                                <th>Nom & Prénom</th>
+                                <th>Catégorie</th>
+                                <th>Classe</th>
+                                <th>Date Embauche</th>
+                                <th>Salaire Base</th>
+                                <th>Mode Paiement</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employees-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prêts Section -->
+        <section id="prets" class="section-view">
+            <div class="card">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-lg font-semibold">Prêts & Avances</h3>
+                    <button class="btn btn-primary" onclick="openModal('modal-loan')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        Nouveau Prêt
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Employé</th>
+                                <th>Type</th>
+                                <th>Montant Total</th>
+                                <th>Mensualité</th>
+                                <th>Reste</th>
+                                <th>Progression</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loans-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Saisie Paie Section -->
+        <section id="paie" class="section-view">
+            <div class="card mb-5">
+                <h3 class="text-lg font-semibold mb-4">Configuration de la Période</h3>
+                <div class="grid grid-cols-1 grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Mois</label>
+                        <select id="pay-month" class="input-field"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Année</label>
+                        <select id="pay-year" class="input-field"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="btn btn-primary w-full" onclick="checkAndInitPayroll()">Préparer la Saisie</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payroll-workspace" class="hidden">
+                <div class="grid grid-cols-1 grid-cols-2 gap-5">
+                    <div class="card flex flex-col" id="card-payroll-input">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Sélection Employé</h3>
+                            <button class="btn btn-icon btn-secondary no-print" onclick="toggleInputFullscreen()" title="Mode Plein Écran">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            </button>
+                        </div>
+                        <select id="pay-emp-select" class="input-field mb-4" onchange="loadEmployeeInputForm()"><option value="">-- Choisir un employé --</option></select>
+                        <div id="pay-input-area" class="flex-1 overflow-y-auto"></div>
+                    </div>
+                    
+                    <div class="card flex flex-col" id="card-payroll-list">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Liste de Validation</h3>
+                            <button class="btn btn-primary btn-sm no-print" onclick="confirmPayroll()">Valider</button>
+                            <button class="btn btn-icon btn-secondary no-print ml-2" onclick="toggleListFullscreen()" title="Mode Plein Écran">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            </button>
+                        </div>
+                        <div id="payroll-preview" class="flex-1 overflow-y-auto space-y-3"></div>
+                        
+                        <div class="mt-4 pt-4 border-t no-print">
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-sm text-muted">Total Brut</div>
+                                    <div class="text-lg font-bold" id="preview-brut">0,00 DH</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-muted">Total Net</div>
+                                    <div class="text-lg font-bold text-accent" id="preview-net">0,00 DH</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-muted">Total IGR</div>
+                                    <div class="text-lg font-bold text-danger" id="preview-igr">0,00 DH</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Journal Section -->
+        <section id="journal-paie" class="section-view">
+            <div class="card mb-5">
+                <div class="grid grid-cols-1 grid-cols-4 gap-4">
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Mois</label>
+                        <select id="journal-month" class="input-field" onchange="renderJournal()"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Année</label>
+                        <select id="journal-year" class="input-field" onchange="renderJournal()"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Filtre</label>
+                        <select id="journal-filter" class="input-field" onchange="renderJournal()">
+                            <option value="all">Tous</option>
+                            <option value="Permanent">Permanents</option>
+                            <option value="Temporaire">Temporaires</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="btn btn-secondary w-full no-print" onclick="window.print()">Imprimer</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Mat.</th>
+                                <th>Nom</th>
+                                <th>Cat.</th>
+                                <th>Jours</th>
+                                <th>Base</th>
+                                <th>Primes</th>
+                                <th>Brut</th>
+                                <th>Cotis.</th>
+                                <th>IGR</th>
+                                <th>Prêts</th>
+                                <th>Net</th>
+                            </tr>
+                        </thead>
+                        <tbody id="journal-tbody"></tbody>
+                        <tfoot id="journal-tfoot"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cumuls Section -->
+        <section id="cumuls" class="section-view">
+            <div class="card mb-5">
+                <div class="grid grid-cols-1 grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Mois</label>
+                        <select id="cum-month" class="input-field" onchange="generateCumulTable()"></select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Année</label>
+                        <select id="cum-year" class="input-field" onchange="generateCumulTable()"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="btn btn-secondary w-full no-print" onclick="window.print()">Imprimer</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Employé</th>
+                                <th colspan="4" class="text-center border-b">Mois En Cours</th>
+                                <th colspan="4" class="text-center border-b">Cumul Annuel</th>
+                            </tr>
+                            <tr>
+                                <th>Base</th><th>Brut</th><th>Net</th><th>IGR</th>
+                                <th>Base</th><th>Brut</th><th>Net</th><th>IGR</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cum-tbody"></tbody>
+                        <tfoot id="cum-tfoot"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Déclarations Section -->
+        <section id="declarations" class="section-view">
+            <div class="card mb-5 no-print">
+                <div class="grid grid-cols-1 grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Type</label>
+                        <select id="dec-type" class="input-field" onchange="updateDeclarationView()">
+                            <option value="mensuel">Mensuel</option>
+                            <option value="9421">Annuel (9421)</option>
+                            <option value="cnss">CNSS</option>
+                            <option value="amo">État d'Assurance (AMO)</option>
+                            <option value="cimr-trim">CIMR Trimestriel</option>
+                            <option value="emargement">Émargement</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Période</label>
+                        <select id="dec-period" class="input-field" onchange="updateDeclarationView()"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="btn btn-primary w-full" onclick="printCurrentDeclaration()">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            Imprimer l'État
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="declaration-content" class="card"></div>
+        </section>
+
+        <!-- Dossiers Section -->
+        <section id="dossiers" class="section-view">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 h-[calc(100vh-140px)]">
+                <div class="card flex flex-col lg:col-span-1 overflow-y-auto">
+                    <h3 class="text-lg font-semibold mb-4">Archives</h3>
+                    <div id="folder-list" class="space-y-2"></div>
+                </div>
+                
+                <div class="card flex flex-col lg:col-span-3 overflow-hidden relative" id="folder-content">
+                    <p class="text-muted text-center py-12 m-auto">Sélectionnez un dossier pour voir les détails</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Parametres Section -->
+        <section id="parametres" class="section-view">
+            <div class="card mb-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Banques</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-bank')">Ajouter Banque</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Nom</th>
+                                <th>Adresse</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="banks-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- PRIMES SETTINGS -->
+            <div class="card mb-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Primes & Indemnités</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-prime')">Ajouter une Rubrique</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Type</th>
+                                <th>Fixe</th>
+                                <th>Imposable</th>
+                                <th>CNSS</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="primes-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold">Cotisations Sociales</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('modal-contribution')">Ajouter</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Taux Salarié</th>
+                                <th>Taux Patronal</th>
+                                <th>Plafond</th>
+                                <th>Catégorie</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contributions-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-4">Barème IGR</h3>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>De</th>
+                                <th>À</th>
+                                <th>Taux</th>
+                                <th>Déduction</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="igr-tbody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn-secondary btn-sm mt-4" onclick="addIGRRow()">+ Ajouter Tranche</button>
+                <div class="mt-5 text-right">
+                    <button class="btn btn-primary" onclick="saveSettings()">Enregistrer les Paramètres</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <!-- Modal Employee -->
+    <div id="modal-employee" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content large">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="modal-emp-title">Nouvel Employé</h3>
+                <button onclick="closeModal('modal-employee')" class="text-muted hover:text-fg transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-5 max-h-[60vh] overflow-y-auto">
+                <form id="employee-form" class="space-y-4">
+                    <input type="hidden" id="emp-id">
+                    <div><label class="text-sm text-muted mb-2 block">Nom & Prénom *</label><input type="text" id="emp-name" class="input-field" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">CIN</label><input type="text" id="emp-cin" class="input-field"></div>
+                        <div><label class="text-sm text-muted mb-2 block">Numéro CNSS</label><input type="text" id="emp-cnss" class="input-field"></div>
+                    </div>
+                    <div><label class="text-sm text-muted mb-2 block">Adresse</label><input type="text" id="emp-address" class="input-field"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Catégorie</label>
+                            <select id="emp-type" class="input-field">
+                                <option value="Permanent">Permanent</option>
+                                <option value="Temporaire">Temporaire</option>
+                            </select>
+                        </div>
+                        <div><label class="text-sm text-muted mb-2 block">Classe</label>
+                            <select id="emp-classe" class="input-field">
+                                <option value="Cadre">Cadre</option>
+                                <option value="Contre Maître">Contre Maître</option>
+                                <option value="Agent">Agent</option>
+                                <option value="Ouvrier">Ouvrier</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Sexe</label><select id="emp-sexe" class="input-field"><option value="M">Masculin</option><option value="F">Féminin</option></select></div>
+                        <div><label class="text-sm text-muted mb-2 block">État Civil</label><select id="emp-marital" class="input-field" onchange="updateDeductions()"><option value="Célibataire">Célibataire</option><option value="Marié(e)">Marié(e)</option><option value="Divorcé(e)">Divorcé(e)</option><option value="Veuf/Veuve">Veuf/Veuve</option></select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Enfants</label><input type="number" id="emp-children" class="input-field" value="0" min="0" oninput="updateDeductions()"></div>
+                        <div><label class="text-sm text-muted mb-2 block">Déductions IGR</label><input type="number" id="emp-deductions" class="input-field" readonly style="background: var(--bg-secondary);"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Date Embauche *</label><input type="date" id="emp-hire-date" class="input-field" required></div>
+                        <div><label class="text-sm text-muted mb-2 block">Date Sortie</label><input type="date" id="emp-exit-date" class="input-field"></div>
+                    </div>
+                    <div><label class="text-sm text-muted mb-2 block" id="emp-salary-label">Salaire de Base (DH) *</label><input type="number" id="emp-salary" class="input-field" required min="0" step="0.01"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Mode Paiement</label><select id="emp-payment-mode" class="input-field" onchange="togglePaymentFields()"><option value="Espèce">Espèce</option><option value="Virement">Virement</option></select></div>
+                        <div id="bank-select-container" class="hidden"><label class="text-sm text-muted mb-2 block">Banque</label><select id="emp-bank-code" class="input-field"></select></div>
+                    </div>
+                    <div id="account-container" class="hidden"><label class="text-sm text-muted mb-2 block">Numéro de Compte</label><input type="text" id="emp-account-number" class="input-field"></div>
+
+                    <!-- PRIMES FIXES SECTION -->
+                    <div class="border-t pt-4 mt-4">
+                        <h4 class="text-md font-semibold mb-3">Primes & Indemnités Fixes</h4>
+                        <div id="emp-primes-section" class="grid grid-cols-1 gap-2">
+                            <p class="text-sm text-muted">Aucune prime fixe définie dans les paramètres.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3">
+                <button class="btn btn-secondary" onclick="closeModal('modal-employee')">Annuler</button>
+                <button class="btn btn-primary" onclick="saveEmployee()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRIME -->
+    <div id="modal-prime" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nouvelle Prime / Indemnité</h3>
+                <button onclick="closeModal('modal-prime')" class="text-muted hover:text-fg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-5">
+                <form id="prime-form" class="space-y-4">
+                    <input type="hidden" id="prime-id">
+                    <div><label class="text-sm text-muted mb-2 block">Nom de la rubrique</label><input type="text" id="prime-name" class="input-field" placeholder="ex: Prime de Panier" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm text-muted mb-2 block">Type</label>
+                            <select id="prime-type" class="input-field">
+                                <option value="Prime">Prime</option>
+                                <option value="Indemnité">Indemnité</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm text-muted mb-2 block">Fréquence</label>
+                            <select id="prime-isFixed" class="input-field">
+                                <option value="true">Mensuel Fixe</option>
+                                <option value="false">Variable (Saisie mensuelle)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-secondary rounded border">
+                        <label class="text-sm font-semibold block mb-2">Règles Fiscales</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" id="prime-isTaxable" class="w-4 h-4">
+                                <span>Imposable (IGR)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" id="prime-isCnss" class="w-4 h-4">
+                                <span>Soumis à CNSS</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3">
+                <button class="btn btn-secondary" onclick="closeModal('modal-prime')">Annuler</button>
+                <button class="btn btn-primary" onclick="savePrime()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Loan -->
+    <div id="modal-loan" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nouveau Prêt/Avance</h3>
+                <button onclick="closeModal('modal-loan')" class="text-muted hover:text-fg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-5">
+                <form id="loan-form" class="space-y-4">
+                    <input type="hidden" id="loan-id">
+                    <div><label class="text-sm text-muted mb-2 block">Employé</label><select id="loan-emp-id" class="input-field" required></select></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Type</label><select id="loan-type" class="input-field"><option value="Prêt">Prêt</option><option value="Avance">Avance</option></select></div>
+                        <div><label class="text-sm text-muted mb-2 block">Montant (DH)</label><input type="number" id="loan-amount" class="input-field" required min="0" oninput="calculateLoanMonthly()"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Date Début</label><input type="month" id="loan-start-date" class="input-field" required></div>
+                        <div><label class="text-sm text-muted mb-2 block">Durée (mois)</label><input type="number" id="loan-duration" class="input-field" required min="1" oninput="calculateLoanMonthly()"></div>
+                    </div>
+                    <div><label class="text-sm text-muted mb-2 block">Mensualité</label><input type="text" id="loan-monthly" class="input-field" readonly style="background: var(--bg-secondary);"></div>
+                </form>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3">
+                <button class="btn btn-secondary" onclick="closeModal('modal-loan')">Annuler</button>
+                <button class="btn btn-primary" onclick="saveLoan()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Bank -->
+    <div id="modal-bank" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nouvelle Banque</h3>
+                <button onclick="closeModal('modal-bank')" class="text-muted hover:text-fg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-5">
+                <form id="bank-form" class="space-y-4">
+                    <div><label class="text-sm text-muted mb-2 block">Code Banque</label><input type="text" id="bank-code" class="input-field" placeholder="ex: 018" required></div>
+                    <div><label class="text-sm text-muted mb-2 block">Nom de la Banque</label><input type="text" id="bank-name" class="input-field" placeholder="ex: Attijariwafa" required></div>
+                    <div><label class="text-sm text-muted mb-2 block">Adresse / Ville</label><input type="text" id="bank-address" class="input-field"></div>
+                </form>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3">
+                <button class="btn btn-secondary" onclick="closeModal('modal-bank')">Annuler</button>
+                <button class="btn btn-primary" onclick="saveBank()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Contribution -->
+    <div id="modal-contribution" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nouvelle Cotisation</h3>
+                <button onclick="closeModal('modal-contribution')" class="text-muted hover:text-fg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-5">
+                <form id="contribution-form" class="space-y-4">
+                    <div><label class="text-sm text-muted mb-2 block">Nom de la Cotisation</label><input type="text" id="contrib-name" class="input-field" placeholder="ex: Prévoyance" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="text-sm text-muted mb-2 block">Taux Salarié (%)</label><input type="number" id="contrib-emp-rate" class="input-field" step="0.01" placeholder="ex: 3" required></div>
+                        <div><label class="text-sm text-muted mb-2 block">Taux Patronal (%)</label><input type="number" id="contrib-patr-rate" class="input-field" step="0.01" placeholder="ex: 3" required></div>
+                    </div>
+                    <div><label class="text-sm text-muted mb-2 block">Plafond (0 pour illimité)</label><input type="number" id="contrib-ceiling" class="input-field" value="6000" min="0"></div>
+                    <div>
+                        <label class="text-sm text-muted mb-2 block">Catégorie</label>
+                        <select id="contrib-type" class="input-field">
+                            <option value="All">Tous</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Temporaire">Temporaire</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="p-5 border-t flex justify-end gap-3">
+                <button class="btn btn-secondary" onclick="closeModal('modal-contribution')">Annuler</button>
+                <button class="btn btn-primary" onclick="saveContribution()">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERIC CONFIRMATION MODAL -->
+    <div id="modal-confirm-action" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="p-6 text-center">
+                <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold mb-2" id="confirm-title">Confirmation</h3>
+                <p class="text-sm text-muted mb-6" id="confirm-message">Êtes-vous sûr ?</p>
+                <div class="flex justify-center gap-3">
+                    <button class="btn btn-secondary" id="btn-confirm-cancel">Annuler</button>
+                    <button class="btn btn-primary bg-danger" id="btn-confirm-ok">Confirmer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION PAYROLL -->
+    <div id="modal-confirm-payroll" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold">Paie Déjà Existante</h3>
+                <p class="text-sm text-muted mt-1">Une paie pour cette période a déjà été générée. Que souhaitez-vous faire ?</p>
+            </div>
+            <div class="p-6 space-y-3">
+                <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition" onclick="confirmReplacePayroll()">
+                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-danger mt-1 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 011-1h2a1 1 0 011 1v3M4 7h16"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-danger">Remplacer Complétement</h4>
+                        <p class="text-xs text-muted">Supprimer la paie actuelle et recommencer à zéro.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition" onclick="confirmModifyPayroll()">
+                    <div class="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-accent mt-1 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2h2.828l8.586-8.586z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-accent">Modifier Cette Paie</h4>
+                        <p class="text-xs text-muted">Charger les données existantes pour ajouter ou corriger des éléments.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end">
+                <button class="btn btn-secondary" onclick="closeModal('modal-confirm-payroll')">Retour (Annuler)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Bulletin de Paie -->
+    <div id="modal-bulletin" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content large" style="background: #f0f0f0;">
+            <div class="p-4 border-b bg-white flex justify-between items-center no-print sticky top-0 z-10 shadow-sm">
+                <h3 class="text-lg font-semibold">Aperçu Bulletin</h3>
+                <div class="flex gap-2">
+                    <button class="btn btn-secondary btn-sm" onclick="printBulletin()">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Imprimer
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="closeModal('modal-bulletin')">Fermer</button>
+                </div>
+            </div>
+            <div id="bulletin-container" class="p-4 overflow-auto"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" role="alert">
+        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-message">Message</span>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        const defaultData = {
+            exercices: [new Date().getFullYear()],
+            currentExercice: new Date().getFullYear(),
+            employees: [],
+            loans: [],
+            banks: [],
+            settings: {
+                // Default Primes
+                primes: [
+                    { id: 'p1', name: 'Prime de Panier', type: 'Prime', isTaxable: false, isCnss: true, isFixed: true },
+                    { id: 'p2', name: 'Prime de Transport', type: 'Indemnité', isTaxable: false, isCnss: false, isFixed: true },
+                    { id: 'p3', name: 'Prime de Logement', type: 'Prime', isTaxable: false, isCnss: false, isFixed: false }
+                ],
+                contributions: [
+                    { id: 'cnss', name: 'CNSS', empRate: 4.48, patrRate: 7.93, ceiling: 6000, type: 'All' },
+                    { id: 'amo', name: 'AMO', empRate: 2.26, patrRate: 3.96, ceiling: 0, type: 'All' },
+                    { id: 'cimr', name: 'CIMR', empRate: 3, patrRate: 3, ceiling: 6000, type: 'All' }
+                ],
+                igrBrackets: [
+                    { min: 0, max: 2500, rate: 0, deduction: 0 },
+                    { min: 2501, max: 4166.67, rate: 10, deduction: 250 },
+                    { min: 4166.68, max: 5000, rate: 20, deduction: 666.67 },
+                    { min: 5001, max: 6666.67, rate: 30, deduction: 1166.67 },
+                    { min: 6666.68, max: 15000, rate: 34, deduction: 1433.33 },
+                    { min: 15001, max: 999999999, rate: 38, deduction: 2033.33 }
+                ]
+            },
+            payrollHistory: []
+        };
+
+        let appData = null;
+        try {
+            const stored = localStorage.getItem('paieProData');
+            appData = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(defaultData));
+        } catch (e) {
+            appData = JSON.parse(JSON.stringify(defaultData));
+        }
+
+        // Ensure arrays exist
+        if (!appData.exercices) appData.exercices = [new Date().getFullYear()];
+        if (!appData.currentExercice) appData.currentExercice = new Date().getFullYear();
+        if (!appData.employees) appData.employees = [];
+        if (!appData.loans) appData.loans = [];
+        if (!appData.banks) appData.banks = [];
+        if (!appData.settings) appData.settings = JSON.parse(JSON.stringify(defaultData.settings));
+        if (!appData.settings.primes) appData.settings.primes = []; 
+        if (!appData.payrollHistory) appData.payrollHistory = [];
+
+        let tempPayrollData = [];
+        let currentEditingEmp = null;
+        let currentPayrollRun = null;
+        let pendingMonth = null;
+        let pendingYear = null;
+        const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            renderExerciceSelector();
+            initAllSelectors();
+            renderDashboard();
+            renderEmployees();
+            renderLoans();
+            loadSettings();
+            renderBanks();
+            renderFolders();
+            updateDeclarationView(); 
+
+            setupConfirmModal();
+        });
+
+        function saveData() {
+            try { localStorage.setItem('paieProData', JSON.stringify(appData)); } catch (e) { console.warn('LocalStorage full'); }
+        }
+
+        function formatMoney(amount) {
+            const safeAmount = typeof amount === 'number' && isFinite(amount) ? amount : 0;
+            return new Intl.NumberFormat('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(safeAmount) + ' DH';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            if(msgEl) msgEl.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- SORTING UTILITY ---
+        // Trie un tableau d'objets par ID (Matricule) croissant
+        function sortById(array) {
+            if (!array || !Array.isArray(array)) return [];
+            return array.sort((a, b) => (a.empId || a.id) - (b.empId || b.id));
+        }
+
+        // --- GENERIC CONFIRM UTILITY ---
+        let confirmCallback = null;
+        function setupConfirmModal() {
+            const modal = document.getElementById('modal-confirm-action');
+            const btnOk = document.getElementById('btn-confirm-ok');
+            const btnCancel = document.getElementById('btn-confirm-cancel');
+            
+            btnCancel.onclick = () => {
+                modal.classList.remove('active');
+                confirmCallback = null;
+            };
+            
+            btnOk.onclick = () => {
+                modal.classList.remove('active');
+                if (confirmCallback) confirmCallback();
+                confirmCallback = null;
+            };
+        }
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            confirmCallback = callback;
+            document.getElementById('modal-confirm-action').classList.add('active');
+        }
+
+        function toggleInputFullscreen() {
+            const card = document.getElementById('card-payroll-input');
+            card.classList.toggle('card-fullscreen');
+        }
+        function toggleListFullscreen() {
+            const card = document.getElementById('card-payroll-list');
+            card.classList.toggle('card-fullscreen');
+        }
+
+        // --- NAVIGATION ---
+        function showSection(id) {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            const section = document.getElementById(id);
+            if (section) section.classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navItem = document.querySelector(`.nav-item[data-section="${id}"]`);
+            if (navItem) navItem.classList.add('active');
+
+            const titles = {
+                'dashboard': 'Tableau de bord', 'personnel': 'Gestion du Personnel', 
+                'prets': 'Prêts & Avances', 'paie': 'Saisie Paie',
+                'journal-paie': 'Journal de Paie', 'cumuls': 'États Cumulatifs',
+                'declarations': 'Déclarations', 'dossiers': 'Dossiers & Bulletins',
+                'parametres': 'Paramétrages'
+            };
+            const titleEl = document.getElementById('page-title');
+            if (titleEl && titles[id]) titleEl.textContent = titles[id];
+            
+            if (window.innerWidth <= 1024) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // --- EXERCICE MANAGEMENT ---
+        function renderExerciceSelector() {
+            const sel = document.getElementById('exercice-select');
+            sel.innerHTML = '';
+            appData.exercices.forEach(y => sel.add(new Option('Exercice ' + y, y)));
+            sel.value = appData.currentExercice;
+        }
+
+        function changeExercice() {
+            const sel = document.getElementById('exercice-select');
+            appData.currentExercice = parseInt(sel.value);
+            saveData();
+            renderExerciceSelector();
+            renderDashboard();
+            renderEmployees();
+            initAllSelectors();
+            renderFolders();
+            updateDeclarationView();
+            showToast(`Exercice ${appData.currentExercice} activé`);
+        }
+
+        function promptNewExercice() {
+            const y = prompt('Année du nouvel exercice:');
+            if (!y) return;
+            const year = parseInt(y);
+            if (isNaN(year) || year < 2000 || year > 2100) return alert('Année invalide');
+            if (appData.exercices.includes(year)) return alert('Exercice existant');
+            
+            appData.exercices.push(year);
+            appData.exercices.sort((a, b) => a - b);
+            
+            appData.employees.forEach(emp => {
+                if (!emp.salaries) emp.salaries = {};
+                emp.salaries[year] = { cumulBrut: 0, cumulTaxable: 0, cumulIGR: 0, cumulNet: 0 };
+            });
+            
+            saveData();
+            renderExerciceSelector();
+            if (confirm(`Basculer vers ${year} ?`)) {
+                document.getElementById('exercice-select').value = year;
+                changeExercice();
+            }
+        }
+
+        function initAllSelectors() {
+            const monthSelects = ['pay-month', 'journal-month', 'cum-month'];
+            const yearSelects = ['pay-year', 'journal-year', 'cum-year'];
+
+            monthSelects.forEach(id => {
+                const sel = document.getElementById(id);
+                if(sel) {
+                    sel.innerHTML = '';
+                    monthNames.forEach((m, i) => sel.add(new Option(m, i + 1)));
+                    sel.value = new Date().getMonth() + 1;
+                }
+            });
+
+            yearSelects.forEach(id => {
+                const sel = document.getElementById(id);
+                if(sel) {
+                    sel.innerHTML = '';
+                    appData.exercices.forEach(y => sel.add(new Option(y, y)));
+                    sel.value = appData.currentExercice;
+                }
+            });
+        }
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            const perms = appData.employees.filter(e => e.type === 'Permanent').length;
+            const temps = appData.employees.filter(e => e.type === 'Temporaire').length;
+            
+            document.getElementById('dash-total-emp').textContent = appData.employees.length;
+            document.getElementById('dash-perm').textContent = perms;
+            document.getElementById('dash-temp').textContent = temps;
+            
+            const activeLoans = appData.loans.filter(l => {
+                try {
+                    const start = new Date(l.startDate);
+                    const now = new Date();
+                    const elapsed = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+                    return elapsed < l.duration;
+                } catch (e) { return false; }
+            }).length;
+            document.getElementById('dash-active-loans').textContent = activeLoans;
+
+            const history = appData.payrollHistory.filter(p => p.year == appData.currentExercice);
+            if (history.length > 0) {
+                const last = history.sort((a, b) => (b.year - a.year) || (b.month - a.month))[0];
+                document.getElementById('dash-masse').textContent = formatMoney(last.totals?.totalNet || 0);
+                document.getElementById('dash-last-date').textContent = `${monthNames[last.month - 1]} ${last.year}`;
+                document.getElementById('dash-last-net').textContent = formatMoney(last.totals?.totalNet || 0);
+            } else {
+                document.getElementById('dash-masse').textContent = '0,00 DH';
+                document.getElementById('dash-last-date').textContent = '-';
+                document.getElementById('dash-last-net').textContent = '-';
+            }
+        }
+
+        // --- PRIMES SETTINGS LOGIC ---
+        function renderPrimesSettings() {
+            const tbody = document.getElementById('primes-tbody');
+            tbody.innerHTML = '';
+            appData.settings.primes.forEach(p => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${p.name}</strong></td>
+                        <td><span class="badge ${p.type === 'Prime' ? 'badge-success' : 'badge-info'}">${p.type}</span></td>
+                        <td>${p.isFixed ? 'Fixe' : 'Variable'}</td>
+                        <td>${p.isTaxable ? 'Oui' : 'Non'}</td>
+                        <td>${p.isCnss ? 'Oui' : 'Non'}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deletePrime('${p.id}')">Supprimer</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function savePrime() {
+            const name = document.getElementById('prime-name').value;
+            const type = document.getElementById('prime-type').value;
+            const isFixed = document.getElementById('prime-isFixed').value === 'true';
+            const isTaxable = document.getElementById('prime-isTaxable').checked;
+            const isCnss = document.getElementById('prime-isCnss').checked;
+
+            if(!name) return showToast('Nom requis');
+
+            const newPrime = {
+                id: 'prime_' + Date.now(),
+                name, type, isFixed, isTaxable, isCnss
+            };
+
+            appData.settings.primes.push(newPrime);
+            saveData();
+            closeModal('modal-prime');
+            renderPrimesSettings();
+            showToast('Rubrique ajoutée');
+        }
+
+        function deletePrime(id) {
+            showConfirm('Supprimer Rubrique', 'Êtes-vous sûr ?', () => {
+                appData.settings.primes = appData.settings.primes.filter(p => p.id !== id);
+                saveData(); renderPrimesSettings();
+            });
+        }
+
+        // --- EMPLOYEES ---
+        function renderEmployees() {
+            const tbody = document.getElementById('employees-tbody');
+            tbody.innerHTML = '';
+            
+            // Sort by ID (Matricule) ASC
+            const sortedEmployees = sortById(appData.employees);
+
+            if (sortedEmployees.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-muted">Aucun employé</td></tr>'; return; }
+
+            sortedEmployees.forEach(emp => {
+                const badgeClass = emp.type === 'Permanent' ? 'badge-success' : 'badge-warning';
+                const hireDate = emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('fr-FR') : '-';
+                const salaryLabel = emp.type === 'Temporaire' ? 'Taux H.' : 'Base';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono">#${emp.id}</td>
+                        <td><strong>${emp.name || '-'}</strong></td>
+                        <td><span class="badge ${badgeClass}">${emp.type || '-'}</span></td>
+                        <td>${emp.classe || '-'}</td>
+                        <td>${hireDate}</td>
+                        <td class="amount">${formatMoney(emp.salary || 0)} <small class="text-muted">(${salaryLabel})</small></td>
+                        <td>${emp.paymentMode || 'Espèce'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="editEmployee(${emp.id})">Modifier</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee(${emp.id})">Supprimer</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateDeductions() {
+            const statusEl = document.getElementById('emp-marital');
+            const childrenEl = document.getElementById('emp-children');
+            const deductionsEl = document.getElementById('emp-deductions');
+            
+            const status = statusEl?.value || 'Célibataire';
+            const children = parseInt(childrenEl?.value) || 0;
+            
+            let deductions = 0;
+            if (status === 'Marié(e)') deductions = 1 + children;
+            else deductions = children;
+            
+            deductions = Math.min(deductions, 6);
+            deductionsEl.value = deductions;
+        }
+
+        function togglePaymentFields() {
+            const mode = document.getElementById('emp-payment-mode').value;
+            document.getElementById('bank-select-container').classList.toggle('hidden', mode !== 'Virement');
+            document.getElementById('account-container').classList.toggle('hidden', mode !== 'Virement');
+        }
+
+        function loadBankSelect() {
+            const sel = document.getElementById('emp-bank-code');
+            sel.innerHTML = '<option value="">Sélectionner...</option>';
+            appData.banks.forEach(b => sel.add(new Option(`${b.code} - ${b.name}`, b.code)));
+        }
+
+        // Render Fixed Primes in Employee Modal
+        function renderEmployeePrimesSection(existingPrimes = []) {
+            const container = document.getElementById('emp-primes-section');
+            const fixedPrimes = appData.settings.primes.filter(p => p.isFixed);
+            
+            if (fixedPrimes.length === 0) {
+                container.innerHTML = '<p class="text-sm text-muted">Aucune prime fixe définie dans les paramètres.</p>';
+                return;
+            }
+
+            let html = '';
+            fixedPrimes.forEach(p => {
+                const assigned = existingPrimes.find(ep => ep.primeId === p.id);
+                const isChecked = assigned ? 'checked' : '';
+                const value = assigned ? assigned.amount : 0;
+                const disabledAttr = assigned ? '' : 'disabled';
+
+                html += `
+                    <div class="flex items-center gap-3 p-2 border rounded bg-white">
+                        <input type="checkbox" class="prime-checkbox w-5 h-5" id="chk-${p.id}" data-id="${p.id}" ${isChecked} onchange="togglePrimeInput('${p.id}', this.checked)">
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">${p.name}</div>
+                            <div class="text-xs text-muted">${p.isTaxable ? 'Imposable' : 'Non Imposable'} | ${p.isCnss ? 'CNSS' : 'Non CNSS'}</div>
+                        </div>
+                        <input type="number" id="amt-${p.id}" class="input-field w-24 text-sm prime-amount" placeholder="Montant" value="${value}" ${disabledAttr} step="0.01">
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function togglePrimeInput(id, isChecked) {
+            const input = document.getElementById(`amt-${id}`);
+            if (isChecked) {
+                input.disabled = false;
+                input.focus();
+            } else {
+                input.disabled = true;
+                input.value = 0;
+            }
+        }
+
+        function saveEmployee() {
+            const idEl = document.getElementById('emp-id');
+            const nameEl = document.getElementById('emp-name');
+            
+            if (!nameEl?.value) return showToast('Le nom est requis');
+            
+            const id = idEl?.value;
+            
+            // Collect Fixed Primes
+            const assignedPrimes = [];
+            document.querySelectorAll('.prime-checkbox:checked').forEach(chk => {
+                const pId = chk.getAttribute('data-id');
+                const amt = parseFloat(document.getElementById(`amt-${pId}`).value) || 0;
+                if(amt > 0) {
+                    assignedPrimes.push({ primeId: pId, amount: amt });
+                }
+            });
+
+            const emp = {
+                id: id ? parseInt(id) : (appData.employees.length > 0 ? Math.max(...appData.employees.map(e => e.id)) + 1 : 1),
+                name: nameEl.value,
+                cin: document.getElementById('emp-cin')?.value || '',
+                cnss: document.getElementById('emp-cnss')?.value || '',
+                address: document.getElementById('emp-address')?.value || '',
+                type: document.getElementById('emp-type')?.value || 'Permanent',
+                classe: document.getElementById('emp-classe')?.value || 'Agent',
+                sexe: document.getElementById('emp-sexe')?.value || 'M',
+                marital: document.getElementById('emp-marital')?.value || 'Célibataire',
+                children: parseInt(document.getElementById('emp-children')?.value) || 0,
+                deductions: parseInt(document.getElementById('emp-deductions')?.value) || 0,
+                hireDate: document.getElementById('emp-hire-date')?.value || '',
+                exitDate: document.getElementById('emp-exit-date')?.value || '',
+                salary: parseFloat(document.getElementById('emp-salary')?.value) || 0,
+                paymentMode: document.getElementById('emp-payment-mode')?.value || 'Espèce',
+                bankCode: document.getElementById('emp-bank-code')?.value || '',
+                accountNumber: document.getElementById('emp-account-number')?.value || '',
+                primes: assignedPrimes, // Save primes
+                salaries: {}
+            };
+
+            appData.exercices.forEach(y => {
+                if(!emp.salaries[y]) emp.salaries[y] = { cumulBrut: 0, cumulTaxable: 0, cumulIGR: 0, cumulNet: 0 };
+            });
+
+            if (id) {
+                const index = appData.employees.findIndex(e => e.id == id);
+                if (index > -1) emp.salaries = appData.employees[index].salaries;
+                appData.employees[index] = emp;
+                showToast('Employé modifié');
+            } else {
+                appData.employees.push(emp);
+                showToast('Employé ajouté');
+            }
+
+            saveData();
+            closeModal('modal-employee');
+            renderEmployees();
+            renderDashboard();
+        }
+
+        function editEmployee(id) {
+            const emp = appData.employees.find(e => e.id === id);
+            if (!emp) return;
+
+            const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
+            
+            setVal('emp-id', emp.id); setVal('emp-name', emp.name); setVal('emp-cin', emp.cin); setVal('emp-cnss', emp.cnss);
+            setVal('emp-address', emp.address); setVal('emp-type', emp.type); setVal('emp-classe', emp.classe);
+            setVal('emp-sexe', emp.sexe); setVal('emp-marital', emp.marital); setVal('emp-children', emp.children);
+            setVal('emp-hire-date', emp.hireDate); setVal('emp-exit-date', emp.exitDate);
+            setVal('emp-salary', emp.salary); setVal('emp-payment-mode', emp.paymentMode);
+            setVal('emp-bank-code', emp.bankCode); setVal('emp-account-number', emp.accountNumber);
+            
+            updateDeductions(); togglePaymentFields(); loadBankSelect();
+            renderEmployeePrimesSection(emp.primes || []); // Load primes
+            openModal('modal-employee');
+        }
+
+        function deleteEmployee(id) {
+            showConfirm('Supprimer Employé', 'Êtes-vous sûr de vouloir supprimer cet employé définitivement ?', () => {
+                appData.employees = appData.employees.filter(e => e.id !== id);
+                saveData();
+                renderEmployees();
+                renderDashboard();
+                showToast('Employé supprimé');
+            });
+        }
+
+        // --- LOANS ---
+        function renderLoans() {
+            const tbody = document.getElementById('loans-tbody');
+            tbody.innerHTML = '';
+            // Sort loans by Employee ID
+            const sortedLoans = sortById(appData.loans);
+
+            if (sortedLoans.length === 0) { tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-muted">Aucun prêt</td></tr>'; return; }
+
+            sortedLoans.forEach(loan => {
+                const emp = appData.employees.find(e => e.id === loan.empId);
+                const empName = emp ? emp.name : 'Inconnu';
+                
+                let elapsed = 0, progress = 0, remaining = loan.amount;
+                try {
+                    const start = new Date(loan.startDate);
+                    const now = new Date();
+                    elapsed = Math.max(0, (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()));
+                    const paid = Math.min(elapsed, loan.duration);
+                    remaining = Math.max(0, loan.amount - (paid * (loan.monthlyInstallment || 0)));
+                    progress = Math.min(100, Math.max(0, (paid / loan.duration) * 100));
+                } catch (e) {}
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${loan.startDate || '-'}</td>
+                        <td><strong>${empName}</strong></td>
+                        <td><span class="badge badge-info">${loan.type || 'Prêt'}</span></td>
+                        <td class="amount">${formatMoney(loan.amount || 0)}</td>
+                        <td class="amount">${formatMoney(loan.monthlyInstallment || 0)}</td>
+                        <td class="amount ${remaining > 0 ? 'text-warning' : 'text-accent'}">${formatMoney(remaining)}</td>
+                        <td>
+                            <div class="progress-bar w-24"><div class="progress-bar-fill" style="width: ${progress}%"></div></div>
+                            <small class="text-muted">${Math.min(elapsed, loan.duration)}/${loan.duration} mois</small>
+                        </td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteLoan(${loan.id})">Clôturer</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function loadLoanEmployeeSelect() {
+            const sel = document.getElementById('loan-emp-id');
+            sel.innerHTML = '<option value="">Sélectionner...</option>';
+            // Sort employees by ID in dropdown as well
+            const sortedEmps = sortById(appData.employees);
+            sortedEmps.forEach(e => sel.add(new Option(`#${e.id} - ${e.name}`, e.id)));
+        }
+
+        function calculateLoanMonthly() {
+            const amount = parseFloat(document.getElementById('loan-amount').value) || 0;
+            const duration = Math.max(1, parseInt(document.getElementById('loan-duration').value) || 1);
+            document.getElementById('loan-monthly').value = formatMoney(amount / duration);
+        }
+
+        function saveLoan() {
+            const empId = document.getElementById('loan-emp-id').value;
+            const amount = parseFloat(document.getElementById('loan-amount').value);
+            if (!empId || !amount) return showToast('Champs requis');
+
+            const loan = {
+                id: Date.now(),
+                empId: parseInt(empId),
+                type: document.getElementById('loan-type').value,
+                amount: amount,
+                startDate: document.getElementById('loan-start-date').value,
+                duration: Math.max(1, parseInt(document.getElementById('loan-duration').value) || 1),
+                monthlyInstallment: amount / Math.max(1, parseInt(document.getElementById('loan-duration').value) || 1)
+            };
+
+            appData.loans.push(loan);
+            saveData(); closeModal('modal-loan'); renderLoans(); renderDashboard(); showToast('Prêt enregistré');
+        }
+
+        function deleteLoan(id) {
+            showConfirm('Clôturer Prêt', 'Voulez-vous supprimer l\'historique de ce prêt ?', () => {
+                appData.loans = appData.loans.filter(l => l.id !== id);
+                saveData(); renderLoans(); renderDashboard();
+                showToast('Prêt supprimé');
+            });
+        }
+
+        // --- SETTINGS ---
+        function loadSettings() {
+            const contribTbody = document.getElementById('contributions-tbody');
+            contribTbody.innerHTML = '';
+            appData.settings.contributions.forEach((c, i) => {
+                contribTbody.innerHTML += `
+                    <tr>
+                        <td><strong>${c.name}</strong></td>
+                        <td class="amount">${c.empRate}%</td>
+                        <td class="amount">${c.patrRate}%</td>
+                        <td class="amount">${c.ceiling > 0 ? formatMoney(c.ceiling) : 'Illimité'}</td>
+                        <td>${c.type === 'All' ? 'Tous' : c.type}</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteContribution(${i})">Supprimer</button></td>
+                    </tr>
+                `;
+            });
+            renderPrimesSettings(); // Render new primes table
+
+            const igrTbody = document.getElementById('igr-tbody');
+            igrTbody.innerHTML = '';
+            appData.settings.igrBrackets.forEach(b => addIGRRow(b.min, b.max, b.rate, b.deduction));
+        }
+
+        function saveContribution() {
+            const name = document.getElementById('contrib-name').value;
+            const empRate = parseFloat(document.getElementById('contrib-emp-rate').value);
+            const patrRate = parseFloat(document.getElementById('contrib-patr-rate').value);
+            const ceiling = parseFloat(document.getElementById('contrib-ceiling').value) || 0;
+            const type = document.getElementById('contrib-type').value;
+
+            if(!name || isNaN(empRate) || isNaN(patrRate)) return showToast('Veuillez remplir correctement les champs');
+
+            const newContrib = {
+                id: 'custom_' + Date.now(),
+                name: name,
+                empRate: empRate,
+                patrRate: patrRate,
+                ceiling: ceiling,
+                type: type
+            };
+
+            appData.settings.contributions.push(newContrib);
+            saveData();
+            closeModal('modal-contribution');
+            loadSettings();
+            showToast('Cotisation ajoutée avec succès');
+        }
+
+        function addIGRRow(min, max, rate, ded) {
+            const tbody = document.getElementById('igr-tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="number" class="input-field w-20" value="${min||0}"></td>
+                <td><input type="number" class="input-field w-20" value="${max||0}"></td>
+                <td><input type="number" class="input-field w-16" value="${rate||0}" step="0.01"></td>
+                <td><input type="number" class="input-field w-20" value="${ded||0}" step="0.01"></td>
+                <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()">X</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function deleteContribution(index) {
+            showConfirm('Supprimer Cotisation', 'Êtes-vous sûr ?', () => {
+                appData.settings.contributions.splice(index, 1);
+                saveData(); loadSettings();
+            });
+        }
+
+        function saveSettings() {
+            const igrTbody = document.getElementById('igr-tbody');
+            appData.settings.igrBrackets = [];
+            igrTbody.querySelectorAll('tr').forEach(tr => {
+                const inputs = tr.querySelectorAll('input');
+                if(inputs.length >= 4) {
+                    appData.settings.igrBrackets.push({
+                        min: parseFloat(inputs[0].value)||0, max: parseFloat(inputs[1].value)||0,
+                        rate: parseFloat(inputs[2].value)||0, deduction: parseFloat(inputs[3].value)||0
+                    });
+                }
+            });
+            saveData(); showToast('Paramètres sauvegardés');
+        }
+
+        // --- PAYROLL ENGINE ---
+        function getPrimeDef(id) {
+            return appData.settings.primes.find(p => p.id === id);
+        }
+
+        function calculateNet(data) {
+            // data: { baseSalary, fixedPrimes, variablePrimes, empType }
+            const baseSalary = data.baseSalary || 0;
+            const fixedPrimes = data.fixedPrimes || [];
+            const variablePrimes = data.variablePrimes || 0;
+            const empType = data.empType || 'Permanent';
+
+            // Analyze Fixed Primes
+            let totalFixedPrimes = 0;
+            let fixedPrimesTaxable = 0;
+            let fixedPrimesCnss = 0;
+
+            fixedPrimes.forEach(fp => {
+                const def = getPrimeDef(fp.primeId);
+                if(def) {
+                    totalFixedPrimes += fp.amount;
+                    if(def.isTaxable) fixedPrimesTaxable += fp.amount;
+                    if(def.isCnss) fixedPrimesCnss += fp.amount;
+                }
+            });
+
+            // Totals
+            const totalBrut = baseSalary + totalFixedPrimes + variablePrimes;
+            
+            // CNSS Base: Base Salary + CNSS-Subject Fixed Primes + Variable Primes (Assumed CNSS eligible)
+            const cnssBase = baseSalary + fixedPrimesCnss + variablePrimes;
+            
+            // Calculate CNSS
+            let totalEmpDed = 0, totalPatrChg = 0, deductionDetails = [];
+            appData.settings.contributions.forEach(c => {
+                if (c.type === 'All' || c.type === empType) {
+                    const base = c.ceiling > 0 ? Math.min(cnssBase, c.ceiling) : cnssBase;
+                    const empDed = base * (c.empRate / 100);
+                    const patrChg = base * (c.patrRate / 100);
+                    totalEmpDed += empDed; totalPatrChg += patrChg;
+                    deductionDetails.push({ name: c.name, base, empRate: c.empRate, amount: empDed });
+                }
+            });
+
+            // IGR Base: (Base + Taxable Fixed Primes + Variable Primes) - CNSS Part
+            // Logic: Only taxable income counts. Non-taxable primes are excluded from IGR base.
+            const igrBase = (baseSalary + fixedPrimesTaxable + variablePrimes) - totalEmpDed;
+
+            let igr = 0;
+            const sorted = [...appData.settings.igrBrackets].sort((a, b) => (a.min||0) - (b.min||0));
+            
+            for (const t of sorted) {
+                if (igrBase > (t.min||0) && igrBase <= (t.max||0)) {
+                    igr = (igrBase * (t.rate/100)) - (t.deduction||0);
+                    break;
+                }
+            }
+            if (igr < 0) igr = 0;
+
+            const net = totalBrut - totalEmpDed - igr;
+
+            return { 
+                deductions: deductionDetails, 
+                totalEmpDeductions: totalEmpDed, 
+                totalPatrCharges: totalPatrChg, 
+                igr, 
+                baseImposable: igrBase,
+                net: net,
+                totalFixedPrimes, // Return for breakdown
+                totalBrut
+            };
+        }
+
+        function getActiveLoanDeduction(empId, month, year) {
+            let total = 0;
+            appData.loans.filter(l => l.empId === empId).forEach(loan => {
+                try {
+                    const start = new Date(loan.startDate);
+                    const elapsed = (year * 12 + month) - (start.getFullYear() * 12 + start.getMonth() + 1);
+                    if (elapsed >= 0 && elapsed < loan.duration) total += (loan.monthlyInstallment || 0);
+                } catch (e) {}
+            });
+            return total;
+        }
+
+        // --- PAYROLL LOGIC ---
+        function checkAndInitPayroll() {
+            const month = parseInt(document.getElementById('pay-month').value);
+            const year = parseInt(document.getElementById('pay-year').value);
+            const existing = appData.payrollHistory.find(p => p.month === month && p.year === year);
+
+            if (existing) {
+                pendingMonth = month;
+                pendingYear = year;
+                openModal('modal-confirm-payroll');
+            } else {
+                initPayrollSession(null);
+            }
+        }
+
+        function confirmReplacePayroll() {
+            if (!pendingMonth) return;
+            appData.payrollHistory = appData.payrollHistory.filter(p => !(p.month === pendingMonth && p.year === pendingYear));
+            saveData();
+            closeModal('modal-confirm-payroll');
+            showToast('Ancienne paie supprimée. Nouvelle saisie démarrée.');
+            initPayrollSession(null);
+        }
+
+        function confirmModifyPayroll() {
+            if (!pendingMonth) return;
+            const existing = appData.payrollHistory.find(p => p.month === pendingMonth && p.year === pendingYear);
+            tempPayrollData = JSON.parse(JSON.stringify(existing.details || []));
+            closeModal('modal-confirm-payroll');
+            showToast('Données de la paie chargées. Prêt à modifier.');
+            initPayrollSession(existing);
+        }
+
+        function initPayrollSession(existingData) {
+            document.getElementById('payroll-workspace').classList.remove('hidden');
+            renderPayrollEntry();
+        }
+
+        function renderPayrollEntry() {
+            const sel = document.getElementById('pay-emp-select');
+            sel.innerHTML = '<option value="">-- Choisir --</option>';
+            
+            // Sort employees for dropdown
+            const activeEmps = sortById(appData.employees.filter(e => !e.exitDate));
+
+            activeEmps.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id;
+                opt.textContent = `#${emp.id} - ${emp.name}`;
+                if (tempPayrollData.some(d => d.empId === emp.id)) {
+                    opt.disabled = true;
+                    opt.textContent += ' (Traité)';
+                }
+                sel.appendChild(opt);
+            });
+            renderPayrollPreview();
+        }
+
+        function loadEmployeeInputForm() {
+            const empId = parseInt(document.getElementById('pay-emp-select').value);
+            if (!empId) return;
+
+            const emp = appData.employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            currentEditingEmp = emp;
+            const month = parseInt(document.getElementById('pay-month').value);
+            const year = parseInt(document.getElementById('pay-year').value);
+
+            const isTemp = emp.type === 'Temporaire';
+            const defaultDays = isTemp ? 0 : 26;
+            const label = isTemp ? 'Heures' : 'Jours';
+            const loanDed = getActiveLoanDeduction(empId, month, year);
+
+            // Prepare Fixed Primes Display
+            let fixedPrimesHtml = '';
+            let totalFixedAmount = 0;
+            if(emp.primes && emp.primes.length > 0) {
+                emp.primes.forEach(p => {
+                    const def = getPrimeDef(p.primeId);
+                    if(def) {
+                        totalFixedAmount += p.amount;
+                        fixedPrimesHtml += `<div class="flex justify-between text-xs text-muted"><span>${def.name}</span><span>${formatMoney(p.amount)}</span></div>`;
+                    }
+                });
+            }
+
+            const inputArea = document.getElementById('pay-input-area');
+            inputArea.innerHTML = `
+                <div class="space-y-4">
+                    <div class="p-4 rounded-lg bg-secondary border flex flex-col gap-1">
+                        <div class="text-sm text-muted">${emp.type} - ${emp.classe}</div>
+                        <div class="text-xl font-bold text-accent">${emp.name}</div>
+                    </div>
+                    
+                    <div><label class="text-sm text-muted mb-2 block">${label} Travaillés</label><input type="number" id="sp-worked" class="input-field" value="${defaultDays}" step="${isTemp ? '0.25' : '1'}"></div>
+                    <div><label class="text-sm text-muted mb-2 block">${label} Congé</label><input type="number" id="sp-leave" class="input-field" value="0" step="${isTemp ? '0.25' : '1'}"></div>
+                    <div><label class="text-sm text-muted mb-2 block">${label} Maladie</label><input type="number" id="sp-sick" class="input-field" value="0" step="${isTemp ? '0.25' : '1'}"></div>
+                    
+                    ${fixedPrimesHtml ? `
+                        <div class="p-3 rounded-lg bg-accent-light border border-accent">
+                            <div class="text-xs text-accent font-bold uppercase mb-2">Primes Fixes Affectées</div>
+                            ${fixedPrimesHtml}
+                        </div>
+                    ` : ''}
+
+                    <div><label class="text-sm text-muted mb-2 block">Primes / Variables</label><input type="number" id="sp-vars" class="input-field" value="0" step="0.01"></div>
+                    
+                    <div class="p-4 rounded-lg bg-danger-light border flex flex-col gap-1">
+                        <div class="text-sm text-muted">Prêts actifs ce mois</div>
+                        <div class="text-lg font-bold text-warning">${formatMoney(loanDed)}</div>
+                    </div>
+                    <button class="btn btn-primary w-full" onclick="addEmployeeToPayroll()">Ajouter à la liste</button>
+                </div>
+            `;
+        }
+
+        function addEmployeeToPayroll() {
+            if (!currentEditingEmp) return;
+
+            const worked = parseFloat(document.getElementById('sp-worked').value) || 0;
+            const leave = parseFloat(document.getElementById('sp-leave').value) || 0;
+            const sick = parseFloat(document.getElementById('sp-sick').value) || 0;
+            const vars = parseFloat(document.getElementById('sp-vars').value) || 0;
+            const month = parseInt(document.getElementById('pay-month').value);
+            const year = parseInt(document.getElementById('pay-year').value);
+
+            if (tempPayrollData.some(d => d.empId === currentEditingEmp.id)) {
+                showToast('Cet employé est déjà traité dans cette liste.');
+                return;
+            }
+
+            let baseSalary = 0;
+            const salary = currentEditingEmp.salary || 0;
+            if (currentEditingEmp.type === 'Temporaire') {
+                baseSalary = (worked + leave + sick) * salary;
+            } else {
+                baseSalary = ((worked + leave + sick) * (salary / 26));
+            }
+
+            // Pass all data to calculateNet
+            const calc = calculateNet({
+                baseSalary: baseSalary,
+                fixedPrimes: currentEditingEmp.primes || [],
+                variablePrimes: vars,
+                empType: currentEditingEmp.type
+            });
+
+            const loanDed = getActiveLoanDeduction(currentEditingEmp.id, month, year);
+            const net = calc.net - loanDed;
+
+            tempPayrollData.push({
+                empId: currentEditingEmp.id,
+                empSnapshot: { name: currentEditingEmp.name, type: currentEditingEmp.type, classe: currentEditingEmp.classe, salary: currentEditingEmp.salary, paymentMode: currentEditingEmp.paymentMode },
+                days: { worked, leave, sick }, 
+                variables: vars, 
+                fixedPrimes: currentEditingEmp.primes || [], // Save for bulletin
+                brut: calc.totalBrut,
+                ...calc, 
+                loanDeduction: loanDed, 
+                net
+            });
+
+            renderPayrollEntry();
+            document.getElementById('pay-input-area').innerHTML = '';
+            currentEditingEmp = null;
+            document.getElementById('pay-emp-select').value = '';
+            updatePayrollTotals();
+        }
+
+        function renderPayrollPreview() {
+            const preview = document.getElementById('payroll-preview');
+            preview.innerHTML = '';
+            
+            // Sort payroll preview by ID
+            const sortedTempPayroll = sortById(tempPayrollData);
+
+            sortedTempPayroll.forEach((d, i) => {
+                const div = document.createElement('div');
+                
+                // Calculate Base from days (excluding primes)
+                const baseFromDays = (d.brut || 0) - (d.totalFixedPrimes || 0) - (d.variables || 0);
+                
+                div.className = 'p-4 rounded-lg bg-white border hover:shadow-md transition';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="font-bold text-lg text-accent">${d.empSnapshot?.name}</div>
+                            <div class="text-xs text-muted mt-1">
+                                Matricule: #${d.empId} | 
+                                Jours: T:${d.days?.worked} C:${d.days?.leave} M:${d.days?.sick}
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removeFromPayroll(${i})" title="Supprimer">✕</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="bg-secondary p-3 rounded border">
+                            <div class="text-xs text-muted uppercase font-semibold mb-2 text-accent-sec">Revenus</div>
+                            <div class="flex justify-between mb-1"><span class="text-muted">Base Jours</span> <span class="font-mono font-medium">${formatMoney(baseFromDays)}</span></div>
+                            ${d.totalFixedPrimes > 0 ? `<div class="flex justify-between mb-1"><span class="text-muted">Primes Fixes</span> <span class="font-mono text-accent">+${formatMoney(d.totalFixedPrimes)}</span></div>` : ''}
+                            ${(d.variables || 0) !== 0 ? `<div class="flex justify-between mb-1"><span class="text-muted">Primes Var.</span> <span class="font-mono text-accent">+${formatMoney(d.variables||0)}</span></div>` : ''}
+                            <div class="flex justify-between border-t pt-2 mt-1"><span class="font-bold">Salaire Brut</span> <span class="font-mono font-bold">${formatMoney(d.brut)}</span></div>
+                        </div>
+
+                        <div class="bg-secondary p-3 rounded border">
+                            <div class="text-xs text-muted uppercase font-semibold mb-2 text-danger">Retenues</div>
+                            <div class="flex justify-between mb-1"><span class="text-muted">Cotis. Sociales</span> <span class="font-mono text-danger">-${formatMoney(d.totalEmpDeductions)}</span></div>
+                            <div class="flex justify-between mb-1"><span class="text-muted">IGR</span> <span class="font-mono text-danger">-${formatMoney(d.igr)}</span></div>
+                            <div class="flex justify-between mb-1"><span class="text-muted">Prêts/Avances</span> <span class="font-mono text-warning">-${formatMoney(d.loanDeduction)}</span></div>
+                            <div class="flex justify-between border-t pt-2 mt-1"><span class="font-bold text-accent">Net à Payer</span> <span class="font-mono font-bold text-lg text-accent">${formatMoney(d.net)}</span></div>
+                        </div>
+                    </div>
+                `;
+                preview.appendChild(div);
+            });
+            updatePayrollTotals();
+        }
+
+        function removeFromPayroll(index) {
+            tempPayrollData.splice(index, 1); renderPayrollEntry();
+        }
+
+        function updatePayrollTotals() {
+            const totals = tempPayrollData.reduce((acc, d) => ({ brut: acc.brut + (d.brut||0), net: acc.net + (d.net||0), igr: acc.igr + (d.igr||0) }), { brut:0, net:0, igr:0 });
+            document.getElementById('preview-brut').textContent = formatMoney(totals.brut);
+            document.getElementById('preview-net').textContent = formatMoney(totals.net);
+            document.getElementById('preview-igr').textContent = formatMoney(totals.igr);
+        }
+
+        function confirmPayroll() {
+            if (tempPayrollData.length === 0) return showToast('Aucune donnée');
+            
+            const month = parseInt(document.getElementById('pay-month').value);
+            const year = parseInt(document.getElementById('pay-year').value);
+
+            const totals = tempPayrollData.reduce((acc, d) => ({ totalBrut: acc.totalBrut + (d.brut||0), totalNet: acc.totalNet + (d.net||0), totalIGR: acc.totalIGR + (d.igr||0) }), { totalBrut:0, totalNet:0, totalIGR:0 });
+
+            appData.payrollHistory = appData.payrollHistory.filter(p => !(p.month === month && p.year === year));
+
+            tempPayrollData.forEach(d => {
+                const emp = appData.employees.find(e => e.id === d.empId);
+                if (emp) {
+                    if (!emp.salaries) emp.salaries = {};
+                    if (!emp.salaries[year]) emp.salaries[year] = { cumulBrut: 0, cumulTaxable: 0, cumulIGR: 0, cumulNet: 0 };
+                    const stats = emp.salaries[year];
+                    stats.cumulBrut += (d.brut||0);
+                    stats.cumulTaxable += d.baseImposable; // Use calculated taxable base
+                    stats.cumulIGR += (d.igr||0);
+                    stats.cumulNet += (d.net||0);
+                }
+            });
+
+            appData.payrollHistory.push({ month, year, details: [...tempPayrollData], totals });
+            saveData();
+            tempPayrollData = [];
+            document.getElementById('payroll-workspace').classList.add('hidden');
+            showToast('Paie validée');
+            renderDashboard(); renderEmployees(); renderFolders(); updateDeclarationView();
+        }
+
+        // --- REPORTING (JOURNAL & CUMULS) ---
+        function renderJournal() {
+            const month = parseInt(document.getElementById('journal-month').value);
+            const year = parseInt(document.getElementById('journal-year').value);
+            const filter = document.getElementById('journal-filter').value;
+            const tbody = document.getElementById('journal-tbody');
+            const tfoot = document.getElementById('journal-tfoot');
+            
+            const payroll = appData.payrollHistory.find(p => p.month === month && p.year === year);
+            tbody.innerHTML = ''; if(tfoot) tfoot.innerHTML = '';
+
+            if (!payroll) { tbody.innerHTML = '<tr><td colspan="11" class="text-center py-8 text-muted">Aucune donnée</td></tr>'; return; }
+
+            // Sort details for display
+            let details = sortById([...(payroll.details || [])]);
+
+            if (filter !== 'all') details = details.filter(d => d.empSnapshot?.type === filter);
+
+            let totals = { base: 0, vars: 0, brut: 0, cotis: 0, igr: 0, loan: 0, net: 0 };
+
+            details.forEach(d => {
+                const base = (d.brut||0) - (d.totalFixedPrimes||0) - (d.variables||0);
+                totals.base += base; totals.vars += (d.totalFixedPrimes||0) + (d.variables||0); totals.brut += (d.brut||0);
+                totals.cotis += (d.totalEmpDeductions||0); totals.igr += (d.igr||0); totals.loan += (d.loanDeduction||0); totals.net += (d.net||0);
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="font-mono">#${d.empId}</td><td><strong>${d.empSnapshot?.name}</strong></td>
+                        <td><span class="badge ${d.empSnapshot?.type === 'Permanent' ? 'badge-success' : 'badge-warning'}">${d.empSnapshot?.type}</span></td>
+                        <td class="text-center font-mono text-sm">${d.days?.worked}/${d.days?.leave}/${d.days?.sick}</td>
+                        <td class="amount">${formatMoney(base)}</td>
+                        <td class="amount">${(d.totalFixedPrimes||0) + (d.variables||0) >= 0 ? '+' : ''}${formatMoney((d.totalFixedPrimes||0) + (d.variables||0))}</td>
+                        <td class="amount font-semibold">${formatMoney(d.brut||0)}</td>
+                        <td class="amount text-danger">-${formatMoney(d.totalEmpDeductions||0)}</td>
+                        <td class="amount text-danger">-${formatMoney(d.igr||0)}</td>
+                        <td class="amount text-warning">-${formatMoney(d.loanDeduction||0)}</td>
+                        <td class="amount font-bold text-accent">${formatMoney(d.net||0)}</td>
+                    </tr>
+                `;
+            });
+
+            if (tfoot) tfoot.innerHTML = `<tr class="font-semibold bg-secondary"><td colspan="4">TOTAUX</td><td class="amount">${formatMoney(totals.base)}</td><td class="amount">${formatMoney(totals.vars)}</td><td class="amount">${formatMoney(totals.brut)}</td><td class="amount">-${formatMoney(totals.cotis)}</td><td class="amount">-${formatMoney(totals.igr)}</td><td class="amount">-${formatMoney(totals.loan)}</td><td class="amount text-accent">${formatMoney(totals.net)}</td></tr>`;
+        }
+
+        function generateCumulTable() {
+            const month = parseInt(document.getElementById('cum-month').value);
+            const year = parseInt(document.getElementById('cum-year').value);
+            const tbody = document.getElementById('cum-tbody');
+            const tfoot = document.getElementById('cum-tfoot');
+            tbody.innerHTML = ''; if(tfoot) tfoot.innerHTML = '';
+
+            const relevant = appData.payrollHistory.filter(p => p.year === year && p.month <= month);
+            const agg = {};
+            
+            // Initialize aggregation with sorted employees
+            const sortedEmps = sortById(appData.employees);
+            sortedEmps.forEach(emp => { agg[emp.id] = { name: emp.name, m_base:0, m_brut:0, m_net:0, m_igr:0, c_base:0, c_brut:0, c_net:0, c_igr:0 }; });
+
+            relevant.forEach(run => {
+                (run.details||[]).forEach(d => {
+                    if(agg[d.empId]) {
+                        const base = (d.brut||0)-(d.totalFixedPrimes||0)-(d.variables||0);
+                        agg[d.empId].c_base += base;
+                        agg[d.empId].c_brut += (d.brut||0);
+                        agg[d.empId].c_net += (d.net||0);
+                        agg[d.empId].c_igr += (d.igr||0);
+                        if(run.month === month) {
+                            agg[d.empId].m_base = base;
+                            agg[d.empId].m_brut = (d.brut||0);
+                            agg[d.empId].m_net = (d.net||0);
+                            agg[d.empId].m_igr = (d.igr||0);
+                        }
+                    }
+                });
+            });
+
+            let totals = { m_base:0, m_brut:0, m_net:0, m_igr:0, c_base:0, c_brut:0, c_net:0, c_igr:0 };
+            Object.values(agg).forEach(d => {
+                totals.m_base+=d.m_base; totals.m_brut+=d.m_brut; totals.m_net+=d.m_net; totals.m_igr+=d.m_igr;
+                totals.c_base+=d.c_base; totals.c_brut+=d.c_brut; totals.c_net+=d.c_net; totals.c_igr+=d.c_igr;
+                tbody.innerHTML += `<tr><td><strong>${d.name}</strong></td><td class="amount">${formatMoney(d.m_base)}</td><td class="amount">${formatMoney(d.m_brut)}</td><td class="amount">${formatMoney(d.m_net)}</td><td class="amount">${formatMoney(d.m_igr)}</td><td class="amount">${formatMoney(d.c_base)}</td><td class="amount">${formatMoney(d.c_brut)}</td><td class="amount">${formatMoney(d.c_net)}</td><td class="amount">${formatMoney(d.c_igr)}</td></tr>`;
+            });
+
+            if(tfoot) tfoot.innerHTML = `<tr class="font-semibold bg-secondary"><td>TOTAUX</td><td class="amount">${formatMoney(totals.m_base)}</td><td class="amount">${formatMoney(totals.m_brut)}</td><td class="amount">${formatMoney(totals.m_net)}</td><td class="amount">${formatMoney(totals.m_igr)}</td><td class="amount">${formatMoney(totals.c_base)}</td><td class="amount">${formatMoney(totals.c_brut)}</td><td class="amount">${formatMoney(totals.c_net)}</td><td class="amount">${formatMoney(totals.c_igr)}</td></tr>`;
+        }
+
+        // --- FOLDERS & BULLETINS ---
+        function renderFolders() {
+            const list = document.getElementById('folder-list');
+            list.innerHTML = '';
+            const history = (appData.payrollHistory||[]).sort((a,b) => (b.year-a.year)||(b.month-a.month));
+            if (history.length === 0) { list.innerHTML = '<p class="text-muted text-center py-4">Aucune archive</p>'; return; }
+            history.forEach(run => {
+                const div = document.createElement('div');
+                div.className = 'p-3 rounded-lg bg-secondary border cursor-pointer hover:border-accent transition';
+                div.innerHTML = `<div class="flex items-center gap-3"><svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><div><div><div class="font-semibold">${monthNames[(run.month||1)-1]} ${run.year}</div><div class="text-xs text-muted">${(run.details||[]).length} bulletins</div></div></div>`;
+                div.onclick = () => showFolderContent(run);
+                list.appendChild(div);
+            });
+        }
+
+        function showFolderContent(run) {
+            currentPayrollRun = run;
+            const content = document.getElementById('folder-content');
+            const containerId = 'bulletin-main-container';
+
+            let html = `
+                <div id="${containerId}" class="flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b">
+                        <h3 class="text-xl font-bold text-accent">${monthNames[(run.month||1)-1]} ${run.year}</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="toggleFullscreenFolder()" title="Mode Plein Écran">
+                            <svg id="fs-icon-expand" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            <span class="ml-1">Plein Écran</span>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-6 bg-secondary p-4 rounded-lg border">
+                        <div>
+                            <div class="text-xs text-muted uppercase font-bold tracking-wide">Total Brut</div>
+                            <div class="text-2xl font-bold">${formatMoney(run.totals?.totalBrut||0)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted uppercase font-bold tracking-wide">Total Net</div>
+                            <div class="text-2xl font-bold text-accent">${formatMoney(run.totals?.totalNet||0)}</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-muted uppercase font-bold tracking-wide">Total IGR</div>
+                            <div class="text-2xl font-bold text-danger">${formatMoney(run.totals?.totalIGR||0)}</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-sm text-muted font-semibold mb-1 block">Rechercher un bulletin</label>
+                        <div class="relative">
+                            <input type="text" id="search-bulletin-input" class="input-field pl-10" placeholder="Nom ou Matricule..." oninput="filterBulletins(this.value)">
+                            <svg class="w-5 h-5 text-muted absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+
+                    <h4 class="font-semibold mb-3 flex justify-between items-center">
+                        Liste des Bulletins
+                        <span class="text-sm text-muted font-normal bg-white px-2 py-1 rounded border" id="bulletin-count">${(run.details||[]).length} résultat(s)</span>
+                    </h4>
+                    
+                    <div class="flex-1 overflow-y-auto pr-1" id="bulletins-scroll-area">
+                        <div id="bulletins-list-container" class="space-y-2"></div>
+                    </div>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+            
+            // Render list sorted by ID
+            const sortedRunDetails = sortById(run.details || []);
+            renderBulletinsList(sortedRunDetails);
+        }
+
+        function toggleFullscreenFolder() {
+            const container = document.getElementById('bulletin-main-container');
+            container.classList.toggle('is-fullscreen');
+        }
+
+        function renderBulletinsList(detailsList) {
+            const container = document.getElementById('bulletins-list-container');
+            const countLabel = document.getElementById('bulletin-count');
+            if(!container) return;
+
+            if (detailsList.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-muted bg-white rounded-lg border border-dashed border-muted">Aucun bulletin ne correspond à votre recherche.</div>';
+                if(countLabel) countLabel.textContent = '0 résultat(s)';
+                return;
+            }
+
+            if(countLabel) countLabel.textContent = `${detailsList.length} résultat(s)`;
+
+            let html = '';
+            detailsList.forEach(d => {
+                const originalIndex = currentPayrollRun.details.indexOf(d);
+                
+                html += `
+                    <div class="p-3 rounded-lg bg-white border hover:shadow-md transition flex items-center justify-between group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-accent-light text-accent flex items-center justify-center font-bold text-xs">
+                                ${(d.empSnapshot?.name || '').charAt(0)}
+                            </div>
+                            <div>
+                                <div class="font-semibold text-sm group-hover:text-accent transition">${d.empSnapshot?.name}</div>
+                                <div class="text-xs text-muted font-mono">
+                                    #${d.empId} &bull; ${d.empSnapshot?.type}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="text-right hidden sm:block">
+                                <div class="font-bold text-accent">${formatMoney(d.net||0)}</div>
+                                <div class="text-[10px] text-muted">NET À PAYER</div>
+                            </div>
+                            <button class="btn btn-sm btn-primary h-8 px-3" onclick="openBulletin(${originalIndex})" title="Voir le bulletin">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function filterBulletins(query) {
+            if (!currentPayrollRun) return;
+            const q = query.toLowerCase();
+            
+            // Search within sorted list
+            const sortedDetails = sortById(currentPayrollRun.details || []);
+            const filtered = sortedDetails.filter(d => {
+                const name = (d.empSnapshot?.name || '').toLowerCase();
+                const id = (d.empId || '').toString();
+                return name.includes(q) || id.includes(q);
+            });
+            renderBulletinsList(filtered);
+        }
+
+        function openBulletin(index) {
+            if (!currentPayrollRun) return;
+            const d = currentPayrollRun.details[index];
+            if (!d) return;
+
+            const periodStr = `${monthNames[currentPayrollRun.month-1]} ${currentPayrollRun.year}`;
+            const baseSalaryFromDays = (d.brut || 0) - (d.totalFixedPrimes || 0) - (d.variables || 0);
+            
+            let primesHtml = '';
+            if(d.fixedPrimes && d.fixedPrimes.length > 0) {
+                d.fixedPrimes.forEach(fp => {
+                    const def = getPrimeDef(fp.primeId);
+                    if(def) primesHtml += `<tr><td>${def.name}</td><td class="text-right">${formatMoney(fp.amount)}</td></tr>`;
+                });
+            }
+
+            let deductionsHtml = '';
+            if(d.deductions && d.deductions.length > 0) {
+                deductionsHtml += `<tr><td colspan="2" style="font-weight:bold; color:#333; background-color:#eee; padding-top:10px;">Cotisations Sociales (Part Salariale)</td></tr>`;
+                d.deductions.forEach(ded => {
+                    deductionsHtml += `<tr><td style="padding-left: 20px;">${ded.name}</td><td class="text-right">${formatMoney(ded.amount)}</td></tr>`;
+                });
+            }
+            
+            if(d.loanDeduction > 0) {
+                deductionsHtml += `<tr><td colspan="2" style="font-weight:bold; color:#333; background-color:#eee; padding-top:10px;">Autres Retenues</td></tr>`;
+                deductionsHtml += `<tr><td style="padding-left: 20px;">Prêts / Avances</td><td class="text-right">${formatMoney(d.loanDeduction)}</td></tr>`;
+            }
+
+            const html = `
+                <div class="bulletin-sheet">
+                    <div class="bulletin-header">
+                        <div>
+                            <div class="bulletin-title">PaiePro</div>
+                            <div class="text-sm text-gray-500">Système de Gestion de Paie</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="bulletin-period">${periodStr}</div>
+                            <div class="text-sm text-gray-500">Bulletin de Paie</div>
+                        </div>
+                    </div>
+
+                    <div class="bulletin-info-grid">
+                        <div class="bulletin-info-box">
+                            <h4>Employé</h4>
+                            <p><strong>${d.empSnapshot.name}</strong></p>
+                            <p>Matricule: #${d.empId}</p>
+                            <p>Catégorie: ${d.empSnapshot.type}</p>
+                            <p>Classe: ${d.empSnapshot.classe}</p>
+                        </div>
+                        <div class="bulletin-info-box">
+                            <h4>Informations</h4>
+                            <p>Paiement: ${d.empSnapshot.paymentMode}</p>
+                            <p>Jours Travaillés: ${d.days.worked}</p>
+                            <p>Jours Congé: ${d.days.leave}</p>
+                            <p>Jours Maladie: ${d.days.sick}</p>
+                        </div>
+                    </div>
+
+                    <table class="bulletin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60%;">Rubrique</th>
+                                <th class="text-right">Montant (DH)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Salaire de Base</strong> <br><small class="text-gray-500">${d.days.worked+d.days.leave+d.days.sick} jours travaillés</small></td><td class="text-right">${formatMoney(baseSalaryFromDays)}</td></tr>
+                            ${primesHtml ? `
+                                <tr><td colspan="2" style="font-weight:bold; color:#333; background-color:#eee; padding-top:10px;">Primes & Indemnités Fixes</td></tr>
+                                ${primesHtml}
+                            ` : ''}
+                            ${(d.variables || 0) !== 0 ? `<tr><td>Primes & Heures Sup.</td><td class="text-right text-accent">+ ${formatMoney(d.variables)}</td></tr>` : ''}
+                            <tr class="bg-gray-100"><td class="text-right"><strong>Salaire Brut</strong></td><td class="text-right"><strong>${formatMoney(d.brut)}</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <table class="bulletin-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60%;">Retenues</th>
+                                <th class="text-right">Montant (DH)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${deductionsHtml}
+                            <tr><td><strong>IGR (Impôt)</strong></td><td class="text-right">${formatMoney(d.igr)}</td></tr>
+                            <tr class="bg-gray-100"><td class="text-right"><strong>Total Retenues</strong></td><td class="text-right"><strong>${formatMoney((d.totalEmpDeductions||0) + d.igr + (d.loanDeduction||0))}</strong></td></tr>
+                        </tbody>
+                    </table>
+
+                    <div class="bulletin-totals">
+                        <div class="bulletin-total-row final">
+                            <span>Net à Payer</span>
+                            <span>${formatMoney(d.net)}</span>
+                        </div>
+                    </div>
+
+                    <div class="bulletin-footer">
+                        <div class="signature-box">Signature Employé</div>
+                        <div class="signature-box">Signature Employeur</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('bulletin-container').innerHTML = html;
+            openModal('modal-bulletin');
+        }
+
+        function printBulletin() {
+            document.body.classList.add('printing-bulletin');
+            window.print();
+            window.onafterprint = () => {
+                document.body.classList.remove('printing-bulletin');
+                window.onafterprint = null;
+            };
+        }
+
+        function printDeclaration(elementId, title, period) {
+            const element = document.getElementById(elementId);
+            if(!element) return;
+
+            document.getElementById('print-title-text').textContent = title;
+            document.getElementById('print-period-text').textContent = period;
+
+            document.body.classList.add('printing-active');
+            
+            setTimeout(() => {
+                window.print();
+                window.onafterprint = () => {
+                    document.body.classList.remove('printing-active');
+                    window.onafterprint = null;
+                };
+            }, 100);
+        }
+
+        function printCurrentDeclaration() {
+            const type = document.getElementById('dec-type').value;
+            const periodEl = document.getElementById('dec-period');
+            const period = periodEl.value;
+            const periodText = periodEl.options[periodEl.selectedIndex].text; 
+
+            if (!period) {
+                showToast('Veuillez sélectionner une période');
+                return;
+            }
+
+            let title = '';
+            let targetId = '';
+
+            switch (type) {
+                case 'amo':
+                    title = "État d'Assurance (AMO)";
+                    targetId = 'print-target-amo';
+                    break;
+                case 'cnss':
+                    title = "Déclaration CNSS";
+                    targetId = 'print-target-cnss';
+                    break;
+                case 'emargement':
+                    title = "État d'Émargement";
+                    targetId = 'print-target-emargement';
+                    break;
+                case 'cimr-trim':
+                    title = "Déclaration CIMR Trimestrielle";
+                    targetId = 'print-target-cimr';
+                    break;
+                case '9421':
+                    title = "État Annuel 9421";
+                    targetId = 'print-target-generic';
+                    break;
+                default: 
+                    title = "État Mensuel";
+                    targetId = 'print-target-generic';
+                    break;
+            }
+
+            printDeclaration(targetId, title, periodText);
+        }
+
+        function updateDeclarationView() {
+            const typeEl = document.getElementById('dec-type');
+            const periodSel = document.getElementById('dec-period');
+            
+            if (!periodSel) return;
+            periodSel.innerHTML = '';
+            
+            const type = typeEl?.value || 'mensuel';
+            const history = appData.payrollHistory.filter(p => p.year == appData.currentExercice);
+
+            if (type === 'mensuel' || type === 'cnss' || type === 'emargement' || type === 'amo') {
+                history.forEach(p => periodSel.add(new Option(`${monthNames[(p.month||1)-1]} ${p.year}`, `${p.year}-${p.month}`)));
+            } else if (type === '9421') {
+                periodSel.add(new Option(appData.currentExercice, appData.currentExercice));
+            } else if (type === 'cimr-trim') {
+                periodSel.add(new Option('1er Trimestre', '1'));
+                periodSel.add(new Option('2ème Trimestre', '2'));
+                periodSel.add(new Option('3ème Trimestre', '3'));
+                periodSel.add(new Option('4ème Trimestre', '4'));
+            }
+
+            renderDeclaration();
+        }
+
+        function renderDeclaration() {
+            const typeEl = document.getElementById('dec-type');
+            const periodEl = document.getElementById('dec-period');
+            const content = document.getElementById('declaration-content');
+            
+            if (!content) return;
+
+            const type = typeEl?.value || 'mensuel';
+            const period = periodEl?.value;
+
+            if (!period) { content.innerHTML = '<p class="text-muted text-center py-8">Sélectionnez une période</p>'; return; }
+
+            let payroll = null;
+            if (type !== '9421' && type !== 'cimr-trim') {
+                const parts = period.split('-');
+                if (parts.length >= 2) {
+                    const y = parseInt(parts[0]);
+                    const m = parseInt(parts[1]);
+                    payroll = appData.payrollHistory.find(p => p.year === y && p.month === m);
+                }
+            }
+
+            if (type === 'emargement') renderEmargement(payroll, content);
+            else if (type === 'cnss') renderCNSS(payroll, content);
+            else if (type === 'amo') renderAMO(payroll, content);
+            else if (type === 'cimr-trim') renderCimrTrimestriel(appData.currentExercice, period, content);
+            else renderGenericDeclaration(type, period, content);
+        }
+
+        function renderAMO(payroll, container) {
+            if (!payroll) { container.innerHTML = '<p class="text-muted text-center py-8">Aucune donnée</p>'; return; }
+            let totalBase = 0, totalSal = 0;
+            
+            let html = `
+            <div id="print-target-amo" class="p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold">État d'Assurance (AMO)</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-5">
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Effectif</div><div class="text-2xl font-bold">${(payroll.details||[]).length}</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Total Base Imposable</div><div class="text-2xl font-bold text-accent-sec" id="amo-base">0,00 DH</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Total Part Salariale</div><div class="text-2xl font-bold text-danger" id="amo-sal">0,00 DH</div></div>
+                </div>
+                <div class="overflow-x-auto"><table class="table"><thead><tr><th>Mat.</th><th>Nom</th><th>Base Imposable</th><th>Taux</th><th>Part Salariale (AMO)</th></tr></thead><tbody>`;
+
+            // Sort details for declaration
+            const sortedDetails = sortById(payroll.details || []);
+
+            sortedDetails.forEach(d => {
+                const amo = (d.deductions||[]).find(ded => ded.name === 'AMO');
+                if (amo) {
+                    const base = amo.base || 0;
+                    const amoRate = appData.settings.contributions.find(c=>c.id==='amo')?.empRate || 0;
+                    const salPart = base * (amoRate / 100);
+                    totalBase += base; totalSal += salPart;
+                    html += `<tr><td class="font-mono">#${d.empId}</td><td><strong>${d.empSnapshot?.name}</strong></td><td class="amount text-right">${formatMoney(base)}</td><td class="amount text-center">${amoRate}%</td><td class="amount text-right">${formatMoney(salPart)}</td></tr>`;
+                }
+            });
+            html += `</tbody><tfoot><tr class="font-semibold bg-secondary"><td colspan="2">TOTAUX</td><td class="amount text-right">${formatMoney(totalBase)}</td><td></td><td class="amount text-right">${formatMoney(totalSal)}</td></tr></tfoot></table></div></div>`;
+            container.innerHTML = html;
+            
+            const baseEl = document.getElementById('amo-base');
+            const salEl = document.getElementById('amo-sal');
+            if (baseEl) baseEl.textContent = formatMoney(totalBase);
+            if (salEl) salEl.textContent = formatMoney(totalSal);
+        }
+
+        function renderEmargement(payroll, container) {
+            if (!payroll) { container.innerHTML = '<p class="text-muted text-center py-8">Aucune donnée</p>'; return; }
+            
+            // Sort details for declaration
+            const sortedDetails = sortById(payroll.details || []);
+            const cashEmps = sortedDetails.filter(d => d.empSnapshot?.paymentMode === 'Espèce');
+            
+            let total = 0;
+            
+            let html = `
+            <div id="print-target-emargement" class="p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold">État d'Émargement - Espèces</h3>
+                </div>
+                <div class="overflow-x-auto"><table class="table"><thead><tr><th>N°</th><th>Mat.</th><th>Nom</th><th>Classe</th><th>Net</th><th>Signature</th></tr></thead><tbody>`;
+            
+            cashEmps.forEach((d, i) => {
+                total += (d.net||0);
+                html += `<tr><td>${i+1}</td><td class="font-mono">#${d.empId}</td><td><strong>${d.empSnapshot?.name}</strong></td><td>${d.empSnapshot?.classe}</td><td class="amount font-semibold">${formatMoney(d.net||0)}</td><td class="text-center text-muted">-</td></tr>`;
+            });
+            html += `</tbody><tfoot><tr class="font-semibold bg-secondary"><td colspan="4">TOTAL</td><td class="amount">${formatMoney(total)}</td><td></td></tr></tfoot></table></div></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderCNSS(payroll, container) {
+            if (!payroll) { container.innerHTML = '<p class="text-muted text-center py-8">Aucune donnée</p>'; return; }
+            let totalSal = 0, totalPat = 0;
+            
+            let html = `
+            <div id="print-target-cnss" class="p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold">Déclaration CNSS</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-5">
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Effectif</div><div class="text-2xl font-bold">${(payroll.details||[]).length}</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Part Salariale</div><div class="text-2xl font-bold text-danger" id="cnss-sal">0,00 DH</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Part Patronale</div><div class="text-2xl font-bold text-accent-sec" id="cnss-pat">0,00 DH</div></div>
+                </div>
+                <div class="overflow-x-auto"><table class="table"><thead><tr><th>Mat.</th><th>Nom</th><th>Base</th><th>Part Sal.</th><th>Part Pat.</th><th>Total</th></tr></thead><tbody>`;
+
+            // Sort details for declaration
+            const sortedDetails = sortById(payroll.details || []);
+
+            sortedDetails.forEach(d => {
+                const cnss = (d.deductions||[]).find(ded => ded.name === 'CNSS');
+                const amo = (d.deductions||[]).find(ded => ded.name === 'AMO');
+                const salPart = (cnss?.amount||0) + (amo?.amount||0);
+                const base = (cnss?.base||0) + (amo?.base||0);
+                
+                const cnssPat = cnss ? cnss.base * (appData.settings.contributions.find(c=>c.id==='cnss')?.patrRate/100 || 0) : 0;
+                const amoPat = amo ? amo.base * (appData.settings.contributions.find(c=>c.id==='amo')?.patrRate/100 || 0) : 0;
+                const patPart = cnssPat + amoPat;
+                
+                totalSal += salPart; totalPat += patPart;
+                html += `<tr><td class="font-mono">#${d.empId}</td><td><strong>${d.empSnapshot?.name}</strong></td><td class="amount">${formatMoney(base)}</td><td class="amount text-danger">${formatMoney(salPart)}</td><td class="amount text-accent-sec">${formatMoney(patPart)}</td><td class="amount font-semibold">${formatMoney(salPart+patPart)}</td></tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            container.innerHTML = html;
+            
+            const salEl = document.getElementById('cnss-sal');
+            const patEl = document.getElementById('cnss-pat');
+            if (salEl) salEl.textContent = formatMoney(totalSal);
+            if (patEl) patEl.textContent = formatMoney(totalPat);
+        }
+
+        function renderCimrTrimestriel(year, quarterStr, container) {
+            const quarter = parseInt(quarterStr);
+            const startMonth = (quarter - 1) * 3 + 1;
+            const endMonth = startMonth + 2;
+
+            const runs = appData.payrollHistory.filter(p => p.year == year && p.month >= startMonth && p.month <= endMonth);
+            
+            const agg = {};
+            runs.forEach(run => {
+                (run.details || []).forEach(d => {
+                    const cimr = (d.deductions || []).find(ded => ded.name === 'CIMR');
+                    if(cimr) {
+                        if(!agg[d.empId]) {
+                            agg[d.empId] = { name: d.empSnapshot.name, id: d.empId, base: 0, partSalariale: 0 };
+                        }
+                        agg[d.empId].base += (cimr.base || 0);
+                        agg[d.empId].partSalariale += (cimr.amount || 0);
+                    }
+                });
+            });
+
+            // Convert agg object to array and sort by ID
+            const empList = sortById(Object.values(agg));
+
+            let totalBase = 0; let totalPart = 0;
+
+            let html = `
+            <div id="print-target-cimr" class="p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold">Déclaration CIMR Trimestrielle - ${year} (T${quarter})</h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4 mb-5">
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Effectif</div><div class="text-2xl font-bold">${empList.length}</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Total Base Trimestrielle</div><div class="text-2xl font-bold text-accent-sec" id="cimr-base">0,00 DH</div></div>
+                    <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Total Part Salariale</div><div class="text-2xl font-bold text-danger" id="cimr-sal">0,00 DH</div></div>
+                </div>
+                <div class="overflow-x-auto"><table class="table"><thead><tr><th>Mat.</th><th>Nom</th><th>Base Imposable (T${quarter})</th><th>Part Salariale (T${quarter})</th></tr></thead><tbody>`;
+
+            empList.forEach(d => {
+                totalBase += d.base; totalPart += d.partSalariale;
+                html += `<tr><td class="font-mono">#${d.id}</td><td><strong>${d.name}</strong></td><td class="amount">${formatMoney(d.base)}</td><td class="amount text-danger">${formatMoney(d.partSalariale)}</td></tr>`;
+            });
+
+            html += `</tbody><tfoot><tr class="font-semibold bg-secondary"><td colspan="2">TOTAUX</td><td class="amount">${formatMoney(totalBase)}</td><td class="amount">${formatMoney(totalPart)}</td></tr></tfoot></table></div></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderGenericDeclaration(type, period, container) {
+            const year = parseInt(period.split('-')[0]) || appData.currentExercice;
+            let history = type === '9421' ? appData.payrollHistory.filter(p => p.year === year) : appData.payrollHistory.filter(p => p.year === year && p.month === parseInt(period.split('-')[1]));
+
+            let totalBrut = 0, totalNet = 0, totalIGR = 0, totalCotis = 0;
+            history.forEach(run => {
+                (run.details||[]).forEach(d => {
+                    totalBrut += (d.brut||0); totalNet += (d.net||0); totalIGR += (d.igr||0); totalCotis += (d.totalEmpDeductions||0);
+                });
+            });
+            const title = type === '9421' ? `État Annuel 9421 - ${year}` : `État Mensuel - ${period}`;
+            
+            let html = `
+            <div id="print-target-generic" class="p-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold">${title}</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Effectif</div><div class="text-2xl font-bold">${appData.employees.length}</div></div>
+                        <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Masse Salariale Brute</div><div class="text-2xl font-bold">${formatMoney(totalBrut)}</div></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Cotisations</div><div class="text-xl font-bold text-warning">${formatMoney(totalCotis)}</div></div>
+                        <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">IGR</div><div class="text-xl font-bold text-danger">${formatMoney(totalIGR)}</div></div>
+                        <div class="p-4 rounded-lg bg-secondary border"><div class="text-sm text-muted">Net à Payer</div><div class="text-xl font-bold text-accent">${formatMoney(totalNet)}</div></div>
+                    </div>
+                </div>
+            </div>`;
+            container.innerHTML = html;
+        }
+
+        // --- BANKS ---
+        function renderBanks() {
+            const tbody = document.getElementById('banks-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            if(appData.banks.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-muted">Aucune banque</td></tr>'; return; }
+            appData.banks.forEach(b => {
+                tbody.innerHTML += `<tr><td class="font-mono">${b.code}</td><td><strong>${b.name}</strong></td><td>${b.address}</td><td><button class="btn btn-sm btn-danger" onclick="deleteBank(${b.id})">Supprimer</button></td></tr>`;
+            });
+        }
+        function saveBank() {
+            const code = document.getElementById('bank-code').value;
+            const name = document.getElementById('bank-name').value;
+            if(!code || !name) return showToast('Champs requis');
+            appData.banks.push({ id: Date.now(), code, name, address: document.getElementById('bank-address').value });
+            saveData(); closeModal('modal-bank'); renderBanks(); showToast('Banque ajoutée');
+        }
+        function deleteBank(id) { 
+            showConfirm('Supprimer Banque', 'Voulez-vous vraiment supprimer cette banque ?', () => {
+            appData.banks = appData.banks.filter(b => b.id !== id);
+            saveData(); renderBanks(); 
+            });
+        }
+
+        // --- MODAL UTILS ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if(id === 'modal-employee') { loadBankSelect(); updateDeductions(); }
+            if(id === 'modal-loan') loadLoanEmployeeSelect();
+        }
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('active'); 
+            const form = document.getElementById(id).querySelector('form');
+            if(form) form.reset();
+        }
+    </script>
+</body>
+</html>
+
